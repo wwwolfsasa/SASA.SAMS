@@ -177,7 +177,7 @@ input.cell_state_col {
 }
 
 .wh_cell_type_slt, .wh_cell_status_slt, .cell_state_col#wh_cell_set_pallet {
-    width: 100%;
+    width: 70%;
 }
 
 .cell_state_col#btn_update_cell {
