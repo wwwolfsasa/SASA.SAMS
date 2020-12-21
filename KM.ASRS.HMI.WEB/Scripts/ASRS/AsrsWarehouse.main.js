@@ -29,6 +29,7 @@ var ASRS_Warehouse = {
                 'cell-status': data[bay][level].CellStatus
             });
 
+
             if (ASRS_Warehouse.CELL_TYPE[data[bay][level].CellType] != undefined && ASRS_Warehouse.CELL_TYPE[data[bay][level].CellType].isCostum) {
                 $(this).css({
                     border: '2px solid #{0}'.Format([ASRS_Warehouse.CELL_TYPE[data[bay][level].CellType].color])
