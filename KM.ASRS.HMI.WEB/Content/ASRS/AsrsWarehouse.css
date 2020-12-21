@@ -184,6 +184,20 @@ input.cell_state_col {
     width: 100%;
 }
 
+input#btn_check_item_on_pallet {
+    float: right;
+    width: 30px;
+    border: 1px solid #cccccc;
+    margin: 3px 3px 0px 0px;
+    background-image: url(/Scripts/jquery-ui-1.12.1.custom/images/ui-icons_777777_256x240.png);
+    background-position-x: 389px;
+    background-position-y: 235px;
+    background-size: 481px;
+}
+
+    input#btn_check_item_on_pallet:hover {
+        background-image: url(/Scripts/jquery-ui-1.12.1.custom/images/ui-icons_cc0000_256x240.png);
+    }
 /*costum cell type*/
 .legend_form_item {
     margin: 0px 3px;

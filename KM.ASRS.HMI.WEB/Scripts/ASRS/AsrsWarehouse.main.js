@@ -123,7 +123,11 @@ var ASRS_Warehouse = {
             id: 'wh_cell_set_pallet',
             type: 'text'
         }).val(thisCell.PalletID);
-        cell_state_td_22.html(cell_state_col_22);
+        var cell_state_col_23 = $('<input></input>').addClass('cell_state_col').attr({
+            id: 'btn_check_item_on_pallet',
+            type: 'button'
+        }).val('');
+        cell_state_td_22.append([cell_state_col_22, cell_state_col_23]);
         cell_state_tr_2.append([cell_state_td_21, cell_state_td_22]);
 
         var cell_state_tr_3 = $('<tr></tr>').addClass('cell_state_tr');
