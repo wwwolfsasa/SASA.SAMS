@@ -108,7 +108,6 @@ td.asrs_wh_bay {
         border: 2px solid #DD00DD;
     }
 
-
     .wh_status_item_icon[cell-status="0"], .asrs_wh_cell[cell-status="0"] {
         background: #FFFFFF;
     }
