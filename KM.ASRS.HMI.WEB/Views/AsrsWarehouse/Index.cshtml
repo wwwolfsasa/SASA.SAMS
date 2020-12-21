@@ -1,0 +1,108 @@
+﻿@using KM.ASRS.HMI.WEB.Models
+@model AsrsWarehouseModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = string.Format("目前位於 第 {0} 列", ViewBag.CurrentRow);
+}
+
+@section PageCSS {
+    @Styles.Render("~/ASRS/Warehouse/css")
+}
+
+@section PageJS{
+    @Scripts.Render("~/ASRS/Warehouse/js")
+}
+
+<div id="asrs_wh">
+    <div id="asrs_wh_row_list">
+        @Html.Label("列數 :", new {
+           @id = "row_list_txt"
+       })
+        @for (int r = 0; r < (int)ViewBag.Row; r++) {
+            @Html.ActionLink((r + 1).ToString(), "Index", "AsrsWarehouse", new {
+                    currentRow = r + 1
+                }, new {
+                    @class = string.Format("btn_switch_row {0}", ((int)ViewBag.CurrentRow).Equals(r + 1) ? "btn_crrent_row" : string.Empty)
+                }
+            )
+        }
+    </div>
+
+    <div id="asrs_wh_legend">
+        <div class="asrs_wh_legend_list" id="wh_type">
+            <div class="wh_type_item"><div class="wh_type_item_icon" type="QN" cell-type="1"></div><span class="wh_type_item_txt">代驗區</span></div>
+            <div class="wh_type_item"><div class="wh_type_item_icon" type="PL" cell-type="2"></div><span class="wh_type_item_txt">棧板區</span></div>
+            <div class="wh_type_item"><div class="wh_type_item_icon" type="QY" cell-type="3"></div><span class="wh_type_item_txt">良品區</span></div>
+            <div class="wh_type_item"><div class="wh_type_item_icon" type="CA" cell-type="4"></div><span class="wh_type_item_txt">冷區</span></div>
+            <div class="wh_type_item"><div class="wh_type_item_icon" type="PA" cell-type="5"></div><span class="wh_type_item_txt">備料區</span></div>
+            <div id="wh_costum_type">
+                <div id="wh_costum_type_list">
+                    @foreach (CostumCellTypeModel cellType in Model.CostumCellTypeList) {
+                        <div class="wh_type_item">
+                            <div class="wh_type_item_icon" type="@cellType.CellTypeId" cell-type="6" style="border: 2px solid @string.Format("#{0}", @cellType.CellTypeColor);"></div>
+                            <span class="wh_type_item_txt">@cellType.CellTypeId</span>
+                            @Html.ActionLink("-", "DeleteCellType", "AsrsWarehouse", new { typeId= cellType.CellTypeId }, new {@class= "wh_type_item_remove" } )
+                        </div>
+                    }
+                </div>
+                @using (Html.BeginForm("NewCellType", "AsrsWarehouse", FormMethod.Post, new { @class = "asrs_wh_legend_form" })) {
+                    @Html.TextBoxFor(c => c.CostumCellType.CellTypeColor, new { @class = "legend_form_item", type = "color", title = "自訂區域顏色" })
+                    @Html.TextBoxFor(c => c.CostumCellType.CellTypeId, new { @class = "legend_form_item", placeholder = "自訂區域名稱" })
+                    <input class="legend_form_item" type="submit" value="" />
+                    @Html.ValidationMessageFor(c => c.CostumCellType.CellTypeId, "", new { @class = "legend_form_error" })
+                }
+            </div>
+        </div>
+        <div class="asrs_wh_legend_list" id="wh_status">
+            <div class="wh_status_item"><div class="wh_status_item_icon" type="EMPTY" cell-status="0"></div><span class="wh_status_item_txt">空庫位</span></div>
+            <div class="wh_status_item"><div class="wh_status_item_icon" type="STORED" cell-status="1"></div><span class="wh_status_item_txt">實庫位</span></div>
+            <div class="wh_status_item"><div class="wh_status_item_icon" type="REQUEST_IN" cell-status="2"></div><span class="wh_status_item_txt">預約入</span></div>
+            <div class="wh_status_item"><div class="wh_status_item_icon" type="REQUEST_OUT" cell-status="3"></div><span class="wh_status_item_txt">預約出</span></div>
+            <div class="wh_status_item"><div class="wh_status_item_icon" type="DISABLE"></div><span class="wh_status_item_txt">禁用</span></div>
+        </div>
+    </div>
+
+    <div id="asrs_wh_bay">
+        <table id="asrs_wh_bay_table" border="1">
+            <thead>
+                <tr>
+                    @for (int b = 0; b < (int)ViewBag.Bay + 1; b++) {
+                        if (b.Equals(0)) {
+                            <th class="header_bay" id="header-freezer">層\格</th>
+                        } else {
+                            <th class="header_bay"> @b</th>
+                        }
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (int l = (int)ViewBag.Level; l > 0; l--) {
+                    <tr class="asrs_wh_level" level="@l">
+                        @for (int b = 0; b < (int)ViewBag.Bay + 1; b++) {
+                            if (b.Equals(0)) {
+                                <td class="asrs_wh_bay asrs_wh_bay_txt">@l</td>
+                            } else {
+                                <td class="asrs_wh_bay" bay="@b" title="@string.Format("儲位 : {0}-{1}-{2}", ViewBag.CurrentRow,b,l)">
+                                    <div class="asrs_wh_cell" row="@ViewBag.CurrentRow" bay="@b" level="@l" onclick="ASRS_Warehouse.OnCellClick(@b,@l)"></div>
+                                </td>
+                            }
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        ASRS_Warehouse.CurrentRow = @ViewBag.CurrentRow;
+        //初始化
+        ASRS_Warehouse.InitialCell();
+        //get once
+        ASRS_Warehouse.GetCellState();
+        //開始同步
+        ASRS_Warehouse.SyncGetCellState();
+    </script>
+</div>
+
+

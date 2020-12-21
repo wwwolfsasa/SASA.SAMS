@@ -1,0 +1,19 @@
+﻿body {
+    margin: 0px;
+    padding: 0px;
+}
+
+.container{
+    width: 90% !important;
+}
+
+div, a, span, ul, ol, li, table, th, tr, td, label {
+    margin: 0px;
+    padding: 0px;
+    font-size: 14px;
+    font-family: 'Microsoft JhengHei', Calibri, 'Times New Roman';
+    text-decoration: none;
+    color: #000000;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
