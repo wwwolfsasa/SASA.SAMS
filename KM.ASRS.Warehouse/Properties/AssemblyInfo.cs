@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("KM.ASRS.Warehouse")]
-[assembly: AssemblyCopyright("Copyright © 2020 KENMEC MECHANICAL ENGINEERING CO.,LTD. All rights reserved.")]
+[assembly: AssemblyCopyright("Copyright © 2020 SASA")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
