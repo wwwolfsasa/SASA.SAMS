@@ -66,8 +66,8 @@ var ASRS_Warehouse = {
         }, 60 * 1000);
     },
     /**Cell Click 
-     * @param bay {number}
-     * @param level {number}
+     * @param bay {number} 格
+     * @param level {number} 層
      */
     OnCellClick: function (bay, level) {
         bay -= 1;
@@ -119,17 +119,29 @@ var ASRS_Warehouse = {
         var cell_state_td_22 = $('<td></td>').addClass('cell_state_td').attr({
             colspan: 2
         });
-        var cell_state_col_22 = $('<input></input>').addClass('cell_state_col').attr({
+        var cell_state_col_22 = this.PalletDropDownList(thisCell.PalletID);
+        /*
+        $('<input></input>').addClass('cell_state_col').attr({
             id: 'wh_cell_set_pallet',
             type: 'text'
         }).val(thisCell.PalletID);
+        */
         var cell_state_col_23 = $('<input></input>').addClass('cell_state_col').attr({
             id: 'btn_check_item_on_pallet',
+            title: '棧板資訊',
             type: 'button'
         }).click(function () {
 
         });
-        cell_state_td_22.append([cell_state_col_22, cell_state_col_23]);
+        var cell_state_col_24 = $('<input></input>').addClass('cell_state_col').attr({
+            id: 'btn_new_pallet',
+            title: '新增棧板',
+            type: 'button'
+        }).click(function () {
+            var palletId = prompt('新增 棧板名稱');
+            ASRS_Warehouse.NewPallet(palletId);
+        });
+        cell_state_td_22.append([cell_state_col_22, cell_state_col_23, cell_state_col_24]);
         cell_state_tr_2.append([cell_state_td_21, cell_state_td_22]);
 
         var cell_state_tr_3 = $('<tr></tr>').addClass('cell_state_tr');
@@ -333,6 +345,55 @@ var ASRS_Warehouse = {
 
         $.each(this.CELL_STATUS, function (index, item) {
             var item = $('<option></option>').addClass('wh_cell_status_item').attr({
+                value: item.value
+            }).text(item.text);
+
+            frame.append(item);
+        });
+
+        selector.html(frame).val(currentValue);
+        return selector;
+    },
+    /**
+     * 新增 棧板
+     * @param {string} palletId 棧板 ID
+     */
+    NewPallet: function (palletId) {
+        if (palletId === '') {
+            alert('棧板 ID 不可為空');
+        } else {
+            $.ajax({
+                url: 'http://localhost:32000/km/pallet/new',
+                data: {
+                    PalletData: {
+                        PalletID: palletId,
+                        Items : null
+                    }
+                },
+                type: 'POST',
+                dataType: 'json',
+                cache: false,
+                success: function (e) {
+                    console.log(e.Status);
+                },
+                error: function (e) {
+                    console.log(e);
+                }
+            });
+        }
+    },
+    /**
+     * 取得棧板清單
+     * @param {any} currentPallet 當前儲位棧板
+     */
+    PalletDropDownList: function (currentPallet) {
+        var selector = $('<select></select>').addClass('wh_cell_set_pallet');
+        var frame = $(document.createDocumentFragment());
+
+
+
+        $.each(this.CELL_STATUS, function (index, item) {
+            var item = $('<option></option>').addClass('unstore_pallet').attr({
                 value: item.value
             }).text(item.text);
 
