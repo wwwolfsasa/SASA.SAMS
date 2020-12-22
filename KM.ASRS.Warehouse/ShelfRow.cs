@@ -31,7 +31,7 @@ namespace KM.ASRS.Warehouse {
         /// </summary>
         public int CellStatus { get; set; }
         /// <summary>
-        /// 棧板號碼
+        /// 棧板號碼 [FK]
         /// </summary>
         public string PalletID { get; set; }
         /// <summary>

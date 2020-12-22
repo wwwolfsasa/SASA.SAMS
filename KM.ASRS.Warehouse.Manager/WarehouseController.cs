@@ -183,6 +183,10 @@ namespace KM.ASRS.Warehouse.Manager {
         /// </summary>
         private string WarehouseRoot { get => "Warehouse"; }
         /// <summary>
+        /// Pallet DB
+        /// </summary>
+        private string PalletRoot { get => "PalletCollect"; }
+        /// <summary>
         /// 倉庫資料庫 [row, DB]
         /// </summary>
         private static Dictionary<int, DB> ShelfRowDB { get; set; }
@@ -194,6 +198,10 @@ namespace KM.ASRS.Warehouse.Manager {
         /// Table Bay 前綴
         /// </summary>
         private string BayTableName { get => "table_bay_"; }
+        /// <summary>
+        /// 棧板資訊
+        /// </summary>
+        private string PalletInfoTableName { get => "table_pallet_info"; }
 
         /// <summary>
         /// 初始化 Warehouse DB
@@ -201,10 +209,11 @@ namespace KM.ASRS.Warehouse.Manager {
         public void OpenWarehouse() {
             if (this.isMongo) {
                 MongoClient = new MongoClient($"mongodb://{this.MongoIP}:{this.MongoPort}");
-
+                IMongoDatabase MongoHouse = null;
+                //cell
                 for (int r = 0; r < this.Row; r++) {
                     //Row DB
-                    IMongoDatabase MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r + 1}");
+                    MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r + 1}");
                     //
                     for (int b = 0; b < this.Bay; b++) {
                         //Bay table
@@ -237,6 +246,9 @@ namespace KM.ASRS.Warehouse.Manager {
                         }
                     }
                 }
+                //pallet info
+                MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                try { MongoHouse.CreateCollection(this.PalletInfoTableName); } catch { }
             } else {
                 System.IO.DirectoryInfo root = new System.IO.DirectoryInfo($"{GlobalString.GetInstallRoot}\\{this.WarehouseRoot}");
                 if (!root.Exists)
@@ -628,7 +640,179 @@ namespace KM.ASRS.Warehouse.Manager {
             return response;
         }
 
+        /// <summary>
+        /// 新增 棧板
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("km/pallet/new")]
+        public object NewPallet([FromBody] JObject data) {
+            ResponseStruct response = new ResponseStruct();
 
+            try {
+                Pallet pallet = data["PalletData"].ToObject<Pallet>();
+                //
+                response = (ResponseStruct)this.NewPallet(pallet);
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = $"資料更新失敗, {e.Message}";
+                response.Data = null;
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 新增 棧板
+        /// </summary>
+        /// <param name="pallet"></param>
+        /// <returns></returns>
+        public object NewPallet(Pallet pallet) {
+            ResponseStruct response = new ResponseStruct();
+
+            if (this.isMongo) {
+                if (MongoClient is null)
+                    return new ResponseStruct() {
+                        isSuccess = false,
+                        Status = "倉庫未啟動",
+                        Data = null
+                    };
+
+                IMongoDatabase MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                var palletTable = MongoHouse.GetCollection<Pallet>(this.PalletInfoTableName);
+
+                var pallets = palletTable.AsQueryable().Where(p => p.PalletID.Equals(pallet.PalletID))?.ToList() ?? null;
+                if (pallets is null || pallets.Count <= 0) {
+                    palletTable.InsertOne(pallet);
+
+                    response.isSuccess = true;
+                    response.Status = $"棧板 [{pallet.PalletID}] 新增成功";
+                    response.Data = null;
+                } else {
+                    response.isSuccess = false;
+                    response.Status = $"棧板 [{pallet.PalletID}] 已經存在";
+                    response.Data = null;
+                }
+            } else {
+                return new ResponseStruct() {
+                    isSuccess = false,
+                    Status = "iBoxDB 未支援",
+                    Data = null
+                };
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 找到 棧板
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("km/pallet/get/all")]
+        public object GetPallets() {
+            ResponseStruct response = new ResponseStruct();
+
+            if (this.isMongo) {
+                if (MongoClient is null)
+                    return new ResponseStruct() {
+                        isSuccess = false,
+                        Status = "倉庫未啟動",
+                        Data = null
+                    };
+
+                IMongoDatabase MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                var palletTable = MongoHouse.GetCollection<Pallet>(this.PalletInfoTableName);
+
+                var pallets = palletTable.AsQueryable().Select(p => p).OrderBy(p => p.PalletID)?.ToList() ?? null;
+                if (pallets is null || pallets.Count <= 0) {
+                    response.isSuccess = true;
+                    response.Status = "棧板查詢成功";
+                    response.Data = pallets;
+                } else {
+                    response.isSuccess = false;
+                    response.Status = "無棧板";
+                    response.Data = null;
+                }
+            } else {
+                return new ResponseStruct() {
+                    isSuccess = false,
+                    Status = "iBoxDB 未支援",
+                    Data = null
+                };
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 取得未存放之棧板
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("km/pallet/get/unustore")]
+        public object GetUnstorePallets() {
+            ResponseStruct response = new ResponseStruct();
+
+            if (this.isMongo) {
+                if (MongoClient is null)
+                    return new ResponseStruct() {
+                        isSuccess = false,
+                        Status = "倉庫未啟動",
+                        Data = null
+                    };
+
+                IMongoDatabase MongoHouse = null;
+                //取得所有棧板
+                MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                var palletTable = MongoHouse.GetCollection<Pallet>(this.PalletInfoTableName);
+                var pallets = palletTable.AsQueryable().Select(p => p).OrderBy(p => p.PalletID)?.ToList() ?? null;
+                //扣除 已存放之棧板
+                for (int r = 0; r < this.Row; r++) {
+                    //Row DB
+                    MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r+1}");
+
+                    for (int b = 0; b < this.Bay; b++) {
+                        var bayTable = MongoHouse.GetCollection<ShelfBay>($"{this.BayTableName}{b+1}");
+
+                        for (int l = 0; l < this.Level; l++) {
+                            try {
+                                var onStoredPallet = bayTable.AsQueryable().Where(c => c.PalletID != null && !c.PalletID.Equals(string.Empty))?.Select(c => c.PalletID)?.ToList()??null;
+
+                                onStoredPallet?.ForEach(p => {
+                                    var tmp = pallets.Where(tp => tp.PalletID.Equals(p))?.FirstOrDefault() ?? null;
+                                    if(tmp  != null) {
+                                        pallets.Remove(tmp);
+                                    }
+                                });
+                            } catch (Exception e) {
+                                Log.Write(Log.State.WARN, Log.App.WAREHOUSE, e.Message);
+                            }
+                        }
+                    }
+                }
+
+                if (pallets is null || pallets.Count <= 0) {
+                    response.isSuccess = true;
+                    response.Status = "棧板查詢成功";
+                    response.Data = pallets;
+                } else {
+                    response.isSuccess = false;
+                    response.Status = "無棧板";
+                    response.Data = null;
+                }
+            } else {
+                return new ResponseStruct() {
+                    isSuccess = false,
+                    Status = "iBoxDB 未支援",
+                    Data = null
+                };
+            }
+
+            return response;
+        }
         #endregion Warehouse WebApi [基本操作]
     }
 }

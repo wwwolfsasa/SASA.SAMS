@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,11 @@ namespace KM.ASRS.Warehouse {
         /// Mongo Id
         /// </summary>
         [BsonId]
-        public string MongoId { get; set; }
+        public ObjectId MongoId { get; set; }
         /// <summary>
         /// 棧板 ID [PK]
         /// </summary>
-        public string PalletName { get; set; }
+        public string PalletID { get; set; }
         /// <summary>
         /// 棧板上貨物清單
         /// </summary>
