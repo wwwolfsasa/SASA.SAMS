@@ -206,6 +206,11 @@ input#btn_new_pallet {
     input#btn_check_item_on_pallet:hover, input#btn_new_pallet:hover {
         background-image: url(/Scripts/jquery-ui-1.12.1.custom/images/ui-icons_cc0000_256x240.png);
     }
+
+.pallet_in_cell {
+    color: #CC0000;
+}
+
 /*costum cell type*/
 .legend_form_item {
     margin: 0px 3px;

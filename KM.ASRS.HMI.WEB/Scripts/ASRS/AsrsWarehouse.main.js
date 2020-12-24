@@ -77,6 +77,7 @@ var ASRS_Warehouse = {
         $('.cell_state').remove();
 
         var cell_state = $('<div></div>').addClass('cell_state').click(function () {
+            $('.ajax_result_dialog').remove();
             $(this).remove();
         });
 
@@ -120,12 +121,6 @@ var ASRS_Warehouse = {
             colspan: 2
         });
         var cell_state_col_22 = this.PalletDropDownList(thisCell.PalletID);
-        /*
-        $('<input></input>').addClass('cell_state_col').attr({
-            id: 'wh_cell_set_pallet',
-            type: 'text'
-        }).val(thisCell.PalletID);
-        */
         var cell_state_col_23 = $('<input></input>').addClass('cell_state_col').attr({
             id: 'btn_check_item_on_pallet',
             title: '棧板資訊',
@@ -248,6 +243,8 @@ var ASRS_Warehouse = {
 
                     cell_state.append(resultDialog.html(result));
                     resultDialog.dialog();
+                    //reload
+                    ASRS_Warehouse.GetCellState();
                 },
                 error: function (e) {
                     console.log(e);
@@ -367,7 +364,7 @@ var ASRS_Warehouse = {
                 data: {
                     PalletData: {
                         PalletID: palletId,
-                        Items : null
+                        Items: null
                     }
                 },
                 type: 'POST',
@@ -387,24 +384,54 @@ var ASRS_Warehouse = {
      * @param {any} currentPallet 當前儲位棧板
      */
     PalletDropDownList: function (currentPallet) {
-        var selector = $('<select></select>').addClass('wh_cell_set_pallet');
-        var frame = $(document.createDocumentFragment());
-
-
-
-        $.each(this.CELL_STATUS, function (index, item) {
-            var item = $('<option></option>').addClass('unstore_pallet').attr({
-                value: item.value
-            }).text(item.text);
-
-            frame.append(item);
+        var selector = $('<select></select>').addClass('wh_cell_set_pallet').bind(this.Event.OnUnstorePalletList, function (e, data) {
+            $(this).html(data).val(currentPallet);
         });
 
-        selector.html(frame).val(currentValue);
+        $.ajax({
+            url: 'http://localhost:32000/km/pallet/get/unstore',
+            type: 'POST',
+            dataType: 'json',
+            cache: false,
+            success: function (e) {
+                if (e.isSuccess) {
+                    var frame = $(document.createDocumentFragment());
+
+                    var nan = $('<option></option>').addClass('unstore_pallet').attr({
+                        value: ''
+                    }).text('無');
+                    frame.append(nan);
+
+                    if (currentPallet != '') {
+                        var pallet_in_cell = $('<option></option>').addClass('unstore_pallet pallet_in_cell').attr({
+                            value: currentPallet
+                        }).text(currentPallet);
+
+                        frame.append(pallet_in_cell);
+                    }
+
+                    $.each(e.Data, function (index, item) {
+                        var item = $('<option></option>').addClass('unstore_pallet').attr({
+                            value: item.PalletID
+                        }).text(item.PalletID);
+
+                        frame.append(item);
+                    });
+
+                    $('.wh_cell_set_pallet').trigger(ASRS_Warehouse.Event.OnUnstorePalletList, [frame]);
+                }
+
+            },
+            error: function (e) {
+                console.log(e);
+            }
+        });
+
         return selector;
     },
     /**事件 */
     Event: {
-        OnCellStateChange: 'OnCellStateChange'
+        OnCellStateChange: 'OnCellStateChange',
+        OnUnstorePalletList: 'OnUnstorePalletList'
     }
 }
