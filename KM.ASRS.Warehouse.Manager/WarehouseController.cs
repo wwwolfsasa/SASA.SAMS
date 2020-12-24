@@ -684,11 +684,17 @@ namespace KM.ASRS.Warehouse.Manager {
 
                 var pallets = palletTable.AsQueryable().Where(p => p.PalletID.Equals(pallet.PalletID))?.ToList() ?? null;
                 if (pallets is null || pallets.Count <= 0) {
-                    palletTable.InsertOne(pallet);
+                    if (pallet.PalletID.Trim().Equals(string.Empty)) {
+                        response.isSuccess = false;
+                        response.Status = $"棧板 ID 不可為空";
+                        response.Data = null;
+                    } else {
+                        palletTable.InsertOne(pallet);
 
-                    response.isSuccess = true;
-                    response.Status = $"棧板 [{pallet.PalletID}] 新增成功";
-                    response.Data = null;
+                        response.isSuccess = true;
+                        response.Status = $"棧板 [{pallet.PalletID}] 新增成功";
+                        response.Data = null;
+                    }
                 } else {
                     response.isSuccess = false;
                     response.Status = $"棧板 [{pallet.PalletID}] 已經存在";
@@ -752,7 +758,7 @@ namespace KM.ASRS.Warehouse.Manager {
         /// <returns></returns>
         [HttpPost]
         [EnableCors("*", "*", "*")]
-        [Route("km/pallet/get/unustore")]
+        [Route("km/pallet/get/unstore")]
         public object GetUnstorePallets() {
             ResponseStruct response = new ResponseStruct();
 
@@ -777,31 +783,29 @@ namespace KM.ASRS.Warehouse.Manager {
                     for (int b = 0; b < this.Bay; b++) {
                         var bayTable = MongoHouse.GetCollection<ShelfBay>($"{this.BayTableName}{b+1}");
 
-                        for (int l = 0; l < this.Level; l++) {
-                            try {
-                                var onStoredPallet = bayTable.AsQueryable().Where(c => c.PalletID != null && !c.PalletID.Equals(string.Empty))?.Select(c => c.PalletID)?.ToList()??null;
+                        try {
+                            var onStoredPallet = bayTable.AsQueryable().Where(c => c.PalletID != null && !c.PalletID.Equals(string.Empty))?.Select(c => c.PalletID)?.ToList() ?? null;
 
-                                onStoredPallet?.ForEach(p => {
-                                    var tmp = pallets.Where(tp => tp.PalletID.Equals(p))?.FirstOrDefault() ?? null;
-                                    if(tmp  != null) {
-                                        pallets.Remove(tmp);
-                                    }
-                                });
-                            } catch (Exception e) {
-                                Log.Write(Log.State.WARN, Log.App.WAREHOUSE, e.Message);
-                            }
+                            onStoredPallet?.ForEach(p => {
+                                var tmp = pallets.Where(tp => tp.PalletID.Equals(p))?.FirstOrDefault() ?? null;
+                                if (tmp != null) {
+                                    pallets.Remove(tmp);
+                                }
+                            });
+                        } catch (Exception e) {
+                            Log.Write(Log.State.WARN, Log.App.WAREHOUSE, e.Message);
                         }
                     }
                 }
 
                 if (pallets is null || pallets.Count <= 0) {
-                    response.isSuccess = true;
-                    response.Status = "棧板查詢成功";
-                    response.Data = pallets;
-                } else {
                     response.isSuccess = false;
                     response.Status = "無棧板";
                     response.Data = null;
+                } else {
+                    response.isSuccess = true;
+                    response.Status = "棧板查詢成功";
+                    response.Data = pallets;
                 }
             } else {
                 return new ResponseStruct() {
