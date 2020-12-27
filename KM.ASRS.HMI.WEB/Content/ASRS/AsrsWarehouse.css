@@ -270,3 +270,25 @@ a.wh_type_item_remove {
     font-weight: bolder;
     color: #cc0000;
 }
+
+/*棧板資訊*/
+.pallet_info {
+    position: absolute;
+    background: #EEEEEE;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+.pallet_info_thead_th{
+    text-align: center;
+}
+
+.pallet_info_tool_item {
+    float: right;
+    margin: 3px 5px;
+}
+
+input.pallet_info_set_data {
+    width: 120px;
+    margin: 2px;
+}

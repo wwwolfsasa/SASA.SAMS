@@ -778,10 +778,10 @@ namespace KM.ASRS.Warehouse.Manager {
                 //扣除 已存放之棧板
                 for (int r = 0; r < this.Row; r++) {
                     //Row DB
-                    MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r+1}");
+                    MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r + 1}");
 
                     for (int b = 0; b < this.Bay; b++) {
-                        var bayTable = MongoHouse.GetCollection<ShelfBay>($"{this.BayTableName}{b+1}");
+                        var bayTable = MongoHouse.GetCollection<ShelfBay>($"{this.BayTableName}{b + 1}");
 
                         try {
                             var onStoredPallet = bayTable.AsQueryable().Where(c => c.PalletID != null && !c.PalletID.Equals(string.Empty))?.Select(c => c.PalletID)?.ToList() ?? null;
@@ -806,6 +806,85 @@ namespace KM.ASRS.Warehouse.Manager {
                     response.isSuccess = true;
                     response.Status = "棧板查詢成功";
                     response.Data = pallets;
+                }
+            } else {
+                return new ResponseStruct() {
+                    isSuccess = false,
+                    Status = "iBoxDB 未支援",
+                    Data = null
+                };
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 取得棧板上資訊
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [EnableCors("*", "*", "*")]
+        [Route("km/pallet/get/info/{palletId}")]
+        public object GetPalletInfo(string palletId) {
+            ResponseStruct response = new ResponseStruct();
+
+            if (this.isMongo) {
+                if (MongoClient is null)
+                    return new ResponseStruct() {
+                        isSuccess = false,
+                        Status = "倉庫未啟動",
+                        Data = null
+                    };
+
+                IMongoDatabase MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                var palletTable = MongoHouse.GetCollection<Pallet>(this.PalletInfoTableName);
+                var pallet = palletTable.AsQueryable().Where(p => p.PalletID.Equals(palletId))?.FirstOrDefault();
+
+                response.isSuccess = true;
+                response.Status = $"資料讀取成功";
+                response.Data = pallet;
+            } else {
+                return new ResponseStruct() {
+                    isSuccess = false,
+                    Status = "iBoxDB 未支援",
+                    Data = null
+                };
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 保存棧板上資訊
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("km/pallet/modify/info")]
+        public object SavePalletInfo([FromBody] JObject data) {
+            ResponseStruct response = new ResponseStruct();
+
+            if (this.isMongo) {
+                if (MongoClient is null)
+                    return new ResponseStruct() {
+                        isSuccess = false,
+                        Status = "倉庫未啟動",
+                        Data = null
+                    };
+
+                try {
+                    string pallet = data["PalletId"].ToObject<string>();
+                    List<PalletItem> items = data["PalletItems"].ToObject<List<PalletItem>>();
+
+                    IMongoDatabase MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
+                    var palletTable = MongoHouse.GetCollection<Pallet>(this.PalletInfoTableName);
+                    palletTable.FindOneAndUpdateAsync(p => p.PalletID.Equals(pallet), Builders<Pallet>.Update.Set("Items", items)).Wait();
+                    //
+                    response.isSuccess = true;
+                    response.Status = $"資料更新成功";
+                    response.Data = null;
+                } catch (Exception e) {
+                    response.isSuccess = false;
+                    response.Status = $"資料更新失敗, {e.Message}";
+                    response.Data = null;
                 }
             } else {
                 return new ResponseStruct() {

@@ -29,6 +29,10 @@ namespace KM.ASRS.Warehouse {
         /// </summary>
         public string ItemName { get; set; }
         /// <summary>
+        /// 規格
+        /// </summary>
+        public string Spec { get; set; }
+        /// <summary>
         /// 描述
         /// </summary>
         public string Description { get; set; }

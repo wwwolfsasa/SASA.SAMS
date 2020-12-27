@@ -78,6 +78,7 @@ var ASRS_Warehouse = {
 
         var cell_state = $('<div></div>').addClass('cell_state').click(function () {
             $('.ajax_result_dialog').remove();
+            $('.pallet_info').remove();
             $(this).remove();
         });
 
@@ -126,7 +127,7 @@ var ASRS_Warehouse = {
             title: '棧板資訊',
             type: 'button'
         }).click(function () {
-
+            cell_state.append(ASRS_PalletInfo.GetPalletInfo($(this), thisCell.PalletID));
         });
         var cell_state_col_24 = $('<input></input>').addClass('cell_state_col').attr({
             id: 'btn_new_pallet',
@@ -384,7 +385,7 @@ var ASRS_Warehouse = {
      * @param {any} currentPallet 當前儲位棧板
      */
     PalletDropDownList: function (currentPallet) {
-        var selector = $('<select></select>').addClass('wh_cell_set_pallet').bind(this.Event.OnUnstorePalletList, function (e, data) {
+        var selector = $('<select></select>').addClass('wh_cell_set_pallet').bind(this.Event.OnUnstorePalletListLoad, function (e, data) {
             $(this).html(data).val(currentPallet);
         });
 
@@ -418,7 +419,7 @@ var ASRS_Warehouse = {
                         frame.append(item);
                     });
 
-                    $('.wh_cell_set_pallet').trigger(ASRS_Warehouse.Event.OnUnstorePalletList, [frame]);
+                    $('.wh_cell_set_pallet').trigger(ASRS_Warehouse.Event.OnUnstorePalletListLoad, [frame]);
                 }
 
             },
@@ -432,6 +433,243 @@ var ASRS_Warehouse = {
     /**事件 */
     Event: {
         OnCellStateChange: 'OnCellStateChange',
-        OnUnstorePalletList: 'OnUnstorePalletList'
+        OnUnstorePalletListLoad: 'OnUnstorePalletListLoad'
+    }
+}
+
+/**棧板資訊 */
+var ASRS_PalletInfo = {
+    /**取得 棧板上資訊
+      * @param {string} palletId 棧板 ID
+      * */
+    GetPalletInfo: function (sender, palletId) {
+        if (palletId === undefined) {
+            alert('無棧板');
+            return;
+        }
+        if (palletId === '') {
+            alert('無棧板');
+            return;
+        }
+
+        $('.pallet_info').remove();
+
+        var pallet_info = $('<div></div>').addClass('pallet_info').css({
+            top: sender.offset().top,
+            left: sender.offset().left + sender.width() + 30
+        }).click(function (e) {
+            e.stopPropagation();
+        });
+
+        var pallet_info_table = $('<table></table>').addClass('pallet_info_table').attr({
+            border: 1
+        });
+
+        var pallet_info_thead = $('<thead></thead>').addClass('pallet_info_thead');
+        var pallet_info_thead_row = $('<tr></tr>');
+        pallet_info_thead.html(pallet_info_thead_row);
+
+        var pallet_info_thead_th_0 = $('<th></th>').addClass('pallet_info_thead_th').text('物件名稱');
+        var pallet_info_thead_th_1 = $('<th></th>').addClass('pallet_info_thead_th').text('規格');
+        var pallet_info_thead_th_2 = $('<th></th>').addClass('pallet_info_thead_th').text('描述');
+        var pallet_info_thead_th_3 = $('<th></th>').addClass('pallet_info_thead_th').text('存量');
+        pallet_info_thead_row.append([pallet_info_thead_th_0, pallet_info_thead_th_1, pallet_info_thead_th_2, pallet_info_thead_th_3]);
+
+        var pallet_info_tbody = $('<tbody></tbody>').addClass('pallet_info_tbody').bind(this.Event.OnPalletInfoLoad, function (e, data) {
+            $(this).find('.pallet_info_item').remove();
+            //
+            var bodyFrag = $(document.createDocumentFragment());
+
+            $.each(data.Items, function (index, item) {
+                var row = $('<tr></tr>').addClass('pallet_info_item');
+
+                var c_0 = $('<td></td>').addClass('pallet_info_item_data');
+                var set_0 = $('<input></input>').addClass('pallet_info_set_data').attr({
+                    type: 'text',
+                    name: 'ItemName'
+                }).val(item.ItemName);
+                c_0.html(set_0);
+
+                var c_1 = $('<td></td>').addClass('pallet_info_item_data');
+                var set_1 = $('<input></input>').addClass('pallet_info_set_data').attr({
+                    type: 'text',
+                    name: 'Spec'
+                }).val(item.Spec);
+                c_1.html(set_1);
+
+                var c_2 = $('<td></td>').addClass('pallet_info_item_data');
+                var set_2 = $('<input></input>').addClass('pallet_info_set_data').attr({
+                    type: 'text',
+                    name: 'Description'
+                }).val(item.Description);
+                c_2.html(set_2);
+
+                var c_3 = $('<td></td>').addClass('pallet_info_item_data');
+                var set_3 = $('<input></input>').addClass('pallet_info_set_data').attr({
+                    type: 'text',
+                    name: 'Accumulation'
+                }).val(item.Accumulation);
+                c_3.html(set_3);
+
+                bodyFrag.append(row.append([c_0, c_1, c_2, c_3]));
+            });
+            //
+            $(this).html(bodyFrag);
+        });
+        pallet_info_table.append([pallet_info_thead, pallet_info_tbody]);
+
+        var pallet_info_tool_bar = $('<div></div>').addClass('pallet_info_tool_bar');
+        var pallet_info_tool_item_0 = $('<input></input>').addClass('pallet_info_tool_item').attr({
+            type: 'button'
+        }).click(function () {
+            ASRS_PalletInfo.SavePalletItems(palletId);
+            //
+            $(this).hide();
+            $('.new_pallet_item').remove();
+        }).val('保存').hide();
+        var pallet_info_tool_item_1 = $('<input></input>').addClass('pallet_info_tool_item').attr({
+            type: 'button'
+        }).click(function () {
+            pallet_info_tool_item_0.show();
+            pallet_info_tbody.append(ASRS_PalletInfo.NewItemRow());
+        }).val('新增');
+        var pallet_info_tool_item_2 = $('<input></input>').addClass('pallet_info_tool_item').attr({
+            type: 'button'
+        }).click(function () {
+
+        }).val('清空');
+        pallet_info_tool_bar.append([pallet_info_tool_item_0, pallet_info_tool_item_1, pallet_info_tool_item_2]);
+
+        //first load pallet items
+        this.LoadPalletItems(palletId);
+        //
+        return pallet_info.append([pallet_info_tool_bar, pallet_info_table]);
+    },
+    /**新增棧板上品項 */
+    NewItemRow: function () {
+        var row = $('<tr></tr>').addClass('pallet_info_item new_pallet_item');
+
+        var c_0 = $('<td></td>').addClass('pallet_info_item_data');
+        var set_0 = $('<input></input>').addClass('pallet_info_set_data').attr({
+            type: 'text',
+            name: 'ItemName'
+        });
+        c_0.html(set_0);
+
+        var c_1 = $('<td></td>').addClass('pallet_info_item_data');
+        var set_1 = $('<input></input>').addClass('pallet_info_set_data').attr({
+            type: 'text',
+            name: 'Spec'
+        });
+        c_1.html(set_1);
+
+        var c_2 = $('<td></td>').addClass('pallet_info_item_data');
+        var set_2 = $('<input></input>').addClass('pallet_info_set_data').attr({
+            type: 'text',
+            name: 'Description'
+        });
+        c_2.html(set_2);
+
+        var c_3 = $('<td></td>').addClass('pallet_info_item_data');
+        var set_3 = $('<input></input>').addClass('pallet_info_set_data').attr({
+            type: 'text',
+            name: 'Accumulation'
+        });
+        c_3.html(set_3);
+
+        return row.append([c_0, c_1, c_2, c_3]);
+    },
+    /**載入棧板資訊
+     * @param {string} palletId 棧板 ID
+     * */
+    LoadPalletItems: function (palletId) {
+        $.ajax({
+            url: 'http://localhost:32000/km/pallet/get/info/{0}'.Format([palletId]),
+            type: 'GET',
+            dataType: 'json',
+            cache: false,
+            success: function (e) {
+                if (e.isSuccess) {
+                    $('.pallet_info_tbody').trigger(ASRS_PalletInfo.Event.OnPalletInfoLoad, [e.Data]);
+                }
+            },
+            error: function (e) {
+                console.log(e);
+            }
+        });
+    },
+    /**保存棧板資訊
+     * @param {string} palletId 棧板 ID
+     * */
+    SavePalletItems: function (palletId) {
+        var rows = $('.pallet_info_item');
+        var items = new Array();
+
+        $.each(rows, function (sender) {
+            var itemName = $(this).find('.pallet_info_set_data[name="ItemName"]').val();
+            var spec = $(this).find('.pallet_info_set_data[name="Spec"]').val();
+            var description = $(this).find('.pallet_info_set_data[name="Description"]').val();
+            var acc = $.isNumeric($(this).find('.pallet_info_set_data[name="Accumulation"]').val()) ? parseInt($(this).find('.pallet_info_set_data[name="Accumulation"]').val()) : 0;
+
+            items.push({
+                ItemName: itemName,
+                Spec: spec,
+                Description: description,
+                Accumulation: acc
+            });
+        });
+
+        $.ajax({
+            url: 'http://localhost:32000/km/pallet/modify/info',
+            data: {
+                PalletId: palletId,
+                PalletItems: items
+            },
+            type: 'POST',
+            dataType: 'json',
+            cache: false,
+            success: function (e) {
+                if (e.isSuccess) {
+                    ASRS_PalletInfo.LoadPalletItems(palletId);
+                } else {
+                    alert(e.Status);
+                }
+            },
+            error: function (e) {
+                console.log(e);
+            }
+        });
+    },
+    /**事件 */
+    Event: {
+        OnPalletInfoLoad: 'OnPalletInfoLoad'
+    }
+}
+
+/**棧板資訊 */
+class PalletInfo {
+    /**初始化
+     * @param {string} ItemName 物件名稱
+     * @param {string} Spec 規格
+     * @param {string} Description 描述
+     * @param {number} Accumulation 存量
+     * */
+    constructor(ItemName, Spec, Description, Accumulation) {
+        /**物件名稱
+         * @type {string}
+         * */
+        this.ItemName = ItemName;
+        /**規格
+         * @type {string}
+         * */
+        this.Spec = Spec;
+        /**描述
+         * @type {string}
+         * */
+        this.Description = Description;
+        /**存量
+         * @type {number}
+         * */
+        this.Accumulation = Accumulation;
     }
 }
