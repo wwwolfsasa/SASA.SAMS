@@ -60,6 +60,9 @@
     <Reference Include="SASA.SAMS.Logger">
       <HintPath>..\SASA.SAMS.Logger\bin\Debug\SASA.SAMS.Logger.dll</HintPath>
     </Reference>
+    <Reference Include="SASA.SAMS.PFD">
+      <HintPath>..\SASA.SAMS.PFD\bin\Debug\SASA.SAMS.PFD.dll</HintPath>
+    </Reference>
     <Reference Include="SASA.SAMS.Warehouse">
       <HintPath>..\SASA.SAMS.Warehouse\bin\Debug\SASA.SAMS.Warehouse.dll</HintPath>
     </Reference>

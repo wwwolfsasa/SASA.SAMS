@@ -1,5 +1,6 @@
 ﻿using iBoxDB.LocalServer;
 using SASA.SAMS.Logger;
+using SASA.SAMS.PFD;
 using KM.MITSU.DE.Global;
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Attributes;
@@ -13,9 +14,10 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using System.Web.Http.SelfHost;
+using System.Data.SqlClient;
 
 namespace SASA.SAMS.Warehouse.Manager {
-    public partial class WarehouseController :ApiController {
+    public partial class WarehouseController:ApiController {
         /// <summary>
         /// 訊息事件
         /// </summary>
@@ -51,6 +53,33 @@ namespace SASA.SAMS.Warehouse.Manager {
         /// </summary>
         public int Level { get; private set; }
 
+
+        public static SqlConnection MSSQL { get; set; }
+        /// <summary>
+        /// MSSQL IP 位址
+        /// </summary>
+        public string MSSQL_IP { get; private set; }
+        /// <summary>
+        /// MSSQL SQL 具名
+        /// </summary>
+        public string MSSQL_NAME { get; private set; }
+        /// <summary>
+        /// MSSQL 連線資料庫名稱
+        /// </summary>
+        public string MSSQL_DB { get; private set; }
+        /// <summary>
+        /// MSSQL 使用者
+        /// </summary>
+        public string MSSQL_USER { get; private set; }
+        /// <summary>
+        /// MSSQL 密碼
+        /// </summary>
+        public string MSSQL_PWD { get; private set; }
+        /// <summary>
+        /// MSSQL 連線字串
+        /// </summary>
+        public string MSSQL_CONN { get; private set; }
+
         /// <summary>
         /// 初始化
         /// </summary>
@@ -83,6 +112,13 @@ namespace SASA.SAMS.Warehouse.Manager {
                 this.MongoIP = config.AppSettings.Settings["MONGO_DB_IP"].Value;
                 this.MongoPort = (int.TryParse(config.AppSettings.Settings["MONGO_DB_PORT"].Value, out int mongoPort)) ? mongoPort : 27017;
             }
+
+            this.MSSQL_IP = config.AppSettings.Settings["MSSQL_IP"].Value;
+            this.MSSQL_NAME = config.AppSettings.Settings["MSSQL_NAME"].Value;
+            this.MSSQL_DB = config.AppSettings.Settings["MSSQL_DB"].Value;
+            this.MSSQL_USER = config.AppSettings.Settings["MSSQL_USER"].Value;
+            this.MSSQL_PWD = config.AppSettings.Settings["MSSQL_PWD"].Value;
+            this.MSSQL_CONN = $"Data Source={this.MSSQL_IP}\\{this.MSSQL_NAME};Initial Catalog={this.MSSQL_DB};Persist Security Info=False;User ID={this.MSSQL_USER };Password={this.MSSQL_PWD };Connect Timeout=0;Pooling=true;Max Pool Size=100;Min Pool Size=5";
         }
 
         #region WebApi Server
@@ -90,6 +126,16 @@ namespace SASA.SAMS.Warehouse.Manager {
         /// 啟動 WebApi Server
         /// </summary>
         public void StartServer() {
+            try {
+                MSSQL = new SqlConnection(this.MSSQL_CONN);
+                MSSQL.Open();
+                //
+                Log.Write(Log.State.INFO, Log.App.WAREHOUSE, $"資料庫連線成功");
+            } catch (Exception e) {
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, $"資料庫連線失敗, 失去記錄基本資料功能\r\n{e.Message}");
+                MSSQL.Dispose();
+            }
+
             try {
                 //
                 this.OpenWarehouse();
@@ -130,6 +176,14 @@ namespace SASA.SAMS.Warehouse.Manager {
                 Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, $"WebApi Server 關閉失敗, {e.Message}");
                 OnMessage?.Invoke("WebApi Server 關閉失敗, 請查閱錯誤紀錄檔");
             }
+
+            try {
+                MSSQL?.Close();
+                Log.Write(Log.State.INFO, Log.App.WAREHOUSE, $"資料庫斷線成功");
+            } catch (Exception e) {
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, $"資料庫斷線失敗\r\n{e.Message}");
+                MSSQL?.Dispose();
+            }
         }
         /// <summary>
         /// 關閉 WebApi Server
@@ -139,6 +193,7 @@ namespace SASA.SAMS.Warehouse.Manager {
                 this.CloseWarehouse();
                 //
                 this.Server?.Dispose();
+                MSSQL?.Dispose();
                 //
                 Log.Write(Log.State.INFO, Log.App.WAREHOUSE, "History Service 關閉成功");
             } catch (Exception e) {
@@ -207,6 +262,8 @@ namespace SASA.SAMS.Warehouse.Manager {
         /// 初始化 Warehouse DB
         /// </summary>
         public void OpenWarehouse() {
+            StringBuilder query = new StringBuilder();
+
             if (this.isMongo) {
                 MongoClient = new MongoClient($"mongodb://{this.MongoIP}:{this.MongoPort}");
                 IMongoDatabase MongoHouse = null;
@@ -214,6 +271,8 @@ namespace SASA.SAMS.Warehouse.Manager {
                 for (int r = 0; r < this.Row; r++) {
                     //Row DB
                     MongoHouse = MongoClient.GetDatabase($"{this.WarehouseRoot}-{r + 1}");
+                    //檢查資料庫列數基本資料
+                    query.AppendLine($"IF NOT EXISTS (SELECT * FROM [shelf_info] WHERE [shelf_row] = {r + 1}) INSERT INTO [shelf_info] ([shelf_row]) VALUES ({r + 1})");
                     //
                     for (int b = 0; b < this.Bay; b++) {
                         //Bay table
@@ -295,6 +354,17 @@ namespace SASA.SAMS.Warehouse.Manager {
                     }
                 }
             }
+
+            if (MSSQL != null) {
+                SqlCommand cmd = new SqlCommand(query.ToString(), MSSQL);
+                try {
+                    cmd.ExecuteNonQuery();
+                } catch (Exception e) {
+                    Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, $"資料庫 倉庫基本資料未建立\r\n{e.Message}");
+                } finally {
+                    query.Clear();
+                }
+            }
             //
             Log.Write(Log.State.INFO, Log.App.WAREHOUSE, "倉庫準備完成");
         }
@@ -335,6 +405,7 @@ namespace SASA.SAMS.Warehouse.Manager {
             return response;
         }
 
+        #region Cell 相關
         /// <summary>
         /// 取得儲格
         /// </summary>
@@ -896,6 +967,53 @@ namespace SASA.SAMS.Warehouse.Manager {
 
             return response;
         }
+
+        #endregion Cell 相關
+
+
+        #region 設備 相關
+
+        [HttpGet]
+        [EnableCors("*", "*", "*")]
+        [Route("km/device/type")]
+        public object GetDeviceType() {
+            ResponseStruct response = new ResponseStruct();
+
+            DeviceType[] type = Enum.GetValues(typeof(DeviceType)).Cast<DeviceType>().ToArray();
+
+            response.isSuccess = true;
+            response.Status = $"查詢成功";
+            response.Data = type.Select(t => {
+                return new {
+                    Name = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<AttributeItemAttribute>().Description,
+                    Value = t.ToString()
+                };
+            });
+
+            return response;
+        }
+
+        [HttpGet]
+        [EnableCors("*", "*", "*")]
+        [Route("km/device/Direction")]
+        public object GetDeviceDirection() {
+            ResponseStruct response = new ResponseStruct();
+
+            DeviceDirection[] dir = Enum.GetValues(typeof(DeviceDirection)).Cast<DeviceDirection>().ToArray();
+
+            response.isSuccess = true;
+            response.Status = $"查詢成功";
+            response.Data = dir.Select(d => {
+                return new {
+                    Name = d.GetType().GetMember(d.ToString()).First().GetCustomAttribute<AttributeItemAttribute>().Description,
+                    Value = d.ToString()
+                };
+            });
+
+            return response;
+        }
+        #endregion 設備 相關
+
         #endregion Warehouse WebApi [基本操作]
     }
 }
