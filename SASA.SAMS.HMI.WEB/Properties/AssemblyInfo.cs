@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 組件的一般資訊會透過將設定 
 // 控制。變更這些屬性值可修改與組件關聯的
 // 資訊。
-[assembly: AssemblyTitle("KM.ASRS.HMI.WEB")]
+[assembly: AssemblyTitle("SAMS.HMI.WEB")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("KM.ASRS.HMI.WEB")]
-[assembly: AssemblyCopyright("Copyright (C)  2020")]
+[assembly: AssemblyProduct("SAMS.HMI.WEB")]
+[assembly: AssemblyCopyright("Copyright (C) 梅洛.彥 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

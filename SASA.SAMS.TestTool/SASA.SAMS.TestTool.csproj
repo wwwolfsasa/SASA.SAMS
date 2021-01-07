@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1C5C5F61-8A58-4CEC-B43A-378B6E571D2E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>KM.ASRS.TestTool</RootNamespace>
-    <AssemblyName>KM.ASRS.TestTool</AssemblyName>
+    <RootNamespace>SASA.SAMS.TestTool</RootNamespace>
+    <AssemblyName>SASA.SAMS.TestTool</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -87,6 +87,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.manifest" />
     <None Include="packages.config" />

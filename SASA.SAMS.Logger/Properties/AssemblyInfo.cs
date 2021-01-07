@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 組件的一般資訊是由下列的屬性集控制。
 // 變更這些屬性的值即可修改組件的相關
 // 資訊。
-[assembly: AssemblyTitle("KM.ASRS.PID")]
+[assembly: AssemblyTitle("SAMS.Logger")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("KM.ASRS.PID")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyProduct("SAMS.Logger")]
+[assembly: AssemblyCopyright("Copyright © 梅洛.彥 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 下列 GUID 為專案公開 (Expose) 至 COM 時所要使用的 typelib ID
-[assembly: Guid("b0fc05de-1501-402a-9049-67c7398fe3cf")]
+[assembly: Guid("7f664236-7375-4bc0-9633-04dacfcd42ac")]
 
 // 組件的版本資訊由下列四個值所組成: 
 //
