@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace KM.ASRS.HMI.WEB.Controllers {
+namespace SASA.SAMS.HMI.WEB.Controllers {
     public class HomeController :Controller {
         public ActionResult Index() {
             return View();

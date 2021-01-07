@@ -1,4 +1,4 @@
-﻿using KM.ASRS.Warehouse;
+﻿using SASA.SAMS.Warehouse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +7,11 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using KM.ASRS.HMI.WEB.Models;
+using SASA.SAMS.HMI.WEB.Models;
 using System.Data.SqlClient;
 using System.Reflection;
 
-namespace KM.ASRS.HMI.WEB.Controllers {
+namespace SASA.SAMS.HMI.WEB.Controllers {
     public class AsrsWarehouseController :Controller {
         // GET: AsrsWarehouse
         public async Task<ActionResult> Index(int currentRow = 1) {

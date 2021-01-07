@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KM.ASRS.PFD {
+namespace SASA.SAMS.PFD {
     internal class AttributeItemAttribute :Attribute {
 
         public AttributeItemAttribute(string Description) {

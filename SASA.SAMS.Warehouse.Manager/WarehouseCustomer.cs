@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 
-namespace KM.ASRS.Warehouse.Manager {
+namespace SASA.SAMS.Warehouse.Manager {
     public partial class WarehouseController: ApiController {
         #region  Warehouse WebApi [客製化操作]
 

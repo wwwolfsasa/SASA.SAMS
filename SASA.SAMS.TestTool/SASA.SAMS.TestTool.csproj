@@ -36,18 +36,17 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="KM.ASRS.Warehouse, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\KM.ASRS.Warehouse\bin\Debug\KM.ASRS.Warehouse.dll</HintPath>
-    </Reference>
-    <Reference Include="KM.ASRS.Warehouse.Manager">
-      <HintPath>..\KM.ASRS.Warehouse.Manager\bin\Debug\KM.ASRS.Warehouse.Manager.dll</HintPath>
-    </Reference>
     <Reference Include="KM.MITSU.DE.Security">
       <HintPath>..\..\KM.MITSU.DE\KM.MITSU.DE.Security\bin\Debug\KM.MITSU.DE.Security.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SASA.SAMS.Warehouse">
+      <HintPath>..\SASA.SAMS.Warehouse\bin\Debug\SASA.SAMS.Warehouse.dll</HintPath>
+    </Reference>
+    <Reference Include="SASA.SAMS.Warehouse.Manager">
+      <HintPath>..\SASA.SAMS.Warehouse.Manager\bin\Debug\SASA.SAMS.Warehouse.Manager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

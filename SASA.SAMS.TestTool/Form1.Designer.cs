@@ -1,5 +1,5 @@
 ﻿
-namespace KM.ASRS.TestTool {
+namespace SASA.SAMS.TestTool {
     partial class Form1 {
         /// <summary>
         /// 設計工具所需的變數。

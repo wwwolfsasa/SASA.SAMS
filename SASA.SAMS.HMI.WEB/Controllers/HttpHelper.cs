@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace KM.ASRS.HMI.WEB.Controllers {
+namespace SASA.SAMS.HMI.WEB.Controllers {
     public class HttpHelper {
         /// <summary>
         /// POST Data

@@ -1,5 +1,5 @@
-﻿using KM.ASRS.Warehouse;
-using KM.ASRS.Warehouse.Manager;
+﻿using SASA.SAMS.Warehouse;
+using SASA.SAMS.Warehouse.Manager;
 using KM.MITSU.DE.Security;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace KM.ASRS.TestTool {
+namespace SASA.SAMS.TestTool {
     public partial class Form1: Form {
         public Form1() {
             InitializeComponent();

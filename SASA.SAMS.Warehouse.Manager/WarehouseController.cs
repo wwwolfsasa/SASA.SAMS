@@ -1,5 +1,5 @@
 ﻿using iBoxDB.LocalServer;
-using KM.ASRS.Logger;
+using SASA.SAMS.Logger;
 using KM.MITSU.DE.Global;
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Attributes;
@@ -14,7 +14,7 @@ using System.Web.Http;
 using System.Web.Http.Cors;
 using System.Web.Http.SelfHost;
 
-namespace KM.ASRS.Warehouse.Manager {
+namespace SASA.SAMS.Warehouse.Manager {
     public partial class WarehouseController :ApiController {
         /// <summary>
         /// 訊息事件

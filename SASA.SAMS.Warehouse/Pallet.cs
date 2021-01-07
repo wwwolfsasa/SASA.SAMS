@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KM.ASRS.Warehouse {
+namespace SASA.SAMS.Warehouse {
     public partial class Pallet {
         /// <summary>
         /// Mongo Id

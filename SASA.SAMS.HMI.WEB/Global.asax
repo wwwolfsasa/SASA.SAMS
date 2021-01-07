@@ -1,1 +1,1 @@
-﻿<%@ Application Codebehind="Global.asax.cs" Inherits="KM.ASRS.HMI.WEB.AsrsHMIApplication" Language="C#" %>
+﻿<%@ Application Codebehind="Global.asax.cs" Inherits="SASA.SAMS.HMI.WEB.AsrsHMIApplication" Language="C#" %>

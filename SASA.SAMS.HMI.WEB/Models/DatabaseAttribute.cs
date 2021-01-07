@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace KM.ASRS.HMI.WEB.Models {
+namespace SASA.SAMS.HMI.WEB.Models {
     public class DatabaseAttribute :Attribute {
 
         public string ColumnName { get; set; }

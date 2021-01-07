@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
-namespace KM.ASRS.HMI.WEB.Models {
+namespace SASA.SAMS.HMI.WEB.Models {
     public class CostumCellTypeModel {
         [DisplayName("自訂區域名稱")]
         [Required]

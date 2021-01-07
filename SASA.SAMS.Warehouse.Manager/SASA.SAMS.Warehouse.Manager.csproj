@@ -39,12 +39,6 @@
     <Reference Include="iBoxDB.NET2, Version=2.33.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\iBoxDB.2.33.0\lib\net20\iBoxDB.NET2.dll</HintPath>
     </Reference>
-    <Reference Include="KM.ASRS.Logger">
-      <HintPath>..\KM.ASRS.Logger\bin\Debug\KM.ASRS.Logger.dll</HintPath>
-    </Reference>
-    <Reference Include="KM.ASRS.Warehouse">
-      <HintPath>..\KM.ASRS.Warehouse\bin\Debug\KM.ASRS.Warehouse.dll</HintPath>
-    </Reference>
     <Reference Include="KM.MITSU.DE.Global">
       <HintPath>..\..\KM.MITSU.DE\KM.MITSU.DE.Global\bin\Debug\KM.MITSU.DE.Global.dll</HintPath>
     </Reference>
@@ -62,6 +56,12 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SASA.SAMS.Logger">
+      <HintPath>..\SASA.SAMS.Logger\bin\Debug\SASA.SAMS.Logger.dll</HintPath>
+    </Reference>
+    <Reference Include="SASA.SAMS.Warehouse">
+      <HintPath>..\SASA.SAMS.Warehouse\bin\Debug\SASA.SAMS.Warehouse.dll</HintPath>
     </Reference>
     <Reference Include="SharpCompress, Version=0.23.0.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpCompress.0.23.0\lib\net45\SharpCompress.dll</HintPath>

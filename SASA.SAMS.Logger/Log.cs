@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KM.ASRS.Logger {
+namespace SASA.SAMS.Logger {
     public class Log {
         /// <summary>
         /// 系統程式列表

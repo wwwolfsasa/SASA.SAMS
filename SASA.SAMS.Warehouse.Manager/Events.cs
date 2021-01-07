@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KM.ASRS.Warehouse.Manager {
+namespace SASA.SAMS.Warehouse.Manager {
     public class Events {
         /// <summary>
         /// 訊息事件

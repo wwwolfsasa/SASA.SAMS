@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KM.ASRS.PFD {
+namespace SASA.SAMS.PFD {
     public class PfdStructure {
         /// <summary>
         /// 裝置
