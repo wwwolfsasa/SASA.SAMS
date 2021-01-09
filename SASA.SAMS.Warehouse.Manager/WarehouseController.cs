@@ -975,7 +975,7 @@ namespace SASA.SAMS.Warehouse.Manager {
 
         [HttpGet]
         [EnableCors("*", "*", "*")]
-        [Route("km/device/type")]
+        [Route("sams/device/type")]
         public object GetDeviceType() {
             ResponseStruct response = new ResponseStruct();
 
@@ -995,7 +995,7 @@ namespace SASA.SAMS.Warehouse.Manager {
 
         [HttpGet]
         [EnableCors("*", "*", "*")]
-        [Route("km/device/Direction")]
+        [Route("sams/device/direction")]
         public object GetDeviceDirection() {
             ResponseStruct response = new ResponseStruct();
 
