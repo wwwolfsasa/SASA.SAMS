@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,25 +16,25 @@ namespace SASA.SAMS.PFD {
         /// Port 口
         /// </summary>
         [AttributeItem("Port 口")]
-        [SqlTable(Table = "port_node", PK = new string[] { "port_id" })]
+        [SqlTable(Table = "port_node", PK = "port_id")]
         Port = 0,
         /// <summary>
         /// Crane
         /// </summary>
         [AttributeItem("Crane")]
-        [SqlTable(Table = "crane_node", PK = new string[] { "crane_id" })]
+        [SqlTable(Table = "crane_node", PK = "crane_id")]
         Crane = 1,
         /// <summary>
         /// 輸送帶
         /// </summary>
         [AttributeItem("輸送帶")]
-        [SqlTable(Table = "cv_node", PK = new string[] { "cv_id" })]
+        [SqlTable(Table = "cv_node", PK = "cv_id")]
         CV = 2,
         /// <summary>
         /// 架子
         /// </summary>
         [AttributeItem("架子")]
-        [SqlTable(Table = "shelf_info", PK = new string[] { "shelf_row" })]
+        [SqlTable(Table = "shelf_info", PK = "shelf_row")]
         Shelf = 3
     }
 
@@ -64,9 +66,27 @@ namespace SASA.SAMS.PFD {
 
     public class PfdStructure {
         /// <summary>
+        /// MongoDB Device DB
+        /// </summary>
+        public const string MongoDbName = "DeviceInfo";
+        /// <summary>
+        /// MongoDB Device Table
+        /// </summary>
+        public const string MongoTableName = "Device";
+
+        /// <summary>
         /// 裝置
         /// </summary>
         public class Device {
+            /// <summary>
+            /// Mongo Id
+            /// </summary>
+            [BsonId]
+            public ObjectId MongoId { get; set; }
+            /// <summary>
+            /// 裝置編號
+            /// </summary>
+            public string Id { get; set; }
             /// <summary>
             /// 裝置名稱
             /// </summary>
@@ -90,13 +110,9 @@ namespace SASA.SAMS.PFD {
         /// </summary>
         public class ConnectItem {
             /// <summary>
-            /// 裝置名稱
+            /// 裝置編號
             /// </summary>
-            public string Name { get; set; }
-            /// <summary>
-            /// 裝置種類
-            /// </summary>
-            public string Type { get; set; }
+            public string Id { get; set; }
             /// <summary>
             /// 物流方向 <seealso cref="DeviceDirection"/>
             /// </summary>

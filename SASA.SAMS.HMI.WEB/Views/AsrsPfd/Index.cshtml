@@ -3,4 +3,21 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div>PFD</div>
+@section PageCSS {
+    @Styles.Render("~/ASRS/PFD/css")
+}
+
+@section PageJS{
+    @Scripts.Render("~/ASRS/PFD/js")
+}
+
+<div id="pfd_body">
+    <div class="pfd_menu">
+        @Html.ActionLink("新增 裝置", "EditDevice", "AsrsPfd", null, new { @class = "list_item" })
+    </div>
+
+    <div id="pfd_tree">
+
+    </div>
+</div>
+

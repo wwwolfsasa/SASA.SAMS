@@ -1,0 +1,48 @@
+﻿@using SASA.SAMS.HMI.WEB.Models
+@model AsrsPfdEditModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section PageCSS {
+    @Styles.Render("~/ASRS/PFD/css")
+}
+
+@section PageJS{
+    @Scripts.Render("~/ASRS/PFD/js")
+}
+
+@if(TempData["ALERT"] != null) {
+    <script>
+        alert('@Html.Raw(TempData["ALERT"])')
+    </script>
+}
+
+<div id="pfd_edit_view">
+    <div id="pfd_edit_view_title">@ViewBag.Title</div>
+
+    @using (Html.BeginForm("EditDevice", "AsrsPfd", FormMethod.Post, new { @class = "pfd_edit_form" })) {
+        <div class="form_row">
+            @Html.LabelFor(m => m.DeviceId, new { @class = "form_label" })
+            @Html.TextBoxFor(m => m.DeviceId, new { @class = "form_set" })
+            @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "form_error" })
+        </div>
+        <div class="form_row">
+            @Html.LabelFor(m => m.DeviceName, new { @class = "form_label" })
+            @Html.TextBoxFor(m => m.DeviceName, new { @class = "form_set" })
+        </div>
+        <div class="form_row">
+            @Html.LabelFor(m => m.DeviceType, new { @class = "form_label" })
+            @Html.DropDownListFor(m => m.DeviceType, Model.DeviceTypeList, new { @class = "form_select" })
+            @Html.ValidationMessageFor(m => m.DeviceType, "", new { @class = "form_error" })
+        </div>
+        <div class="form_row">
+            @Html.LabelFor(m => m.DeviceActive, new { @class = "form_label" })
+            @Html.CheckBoxFor(m => m.DeviceActive, new { @class = "form_check" })
+        </div>
+        <div class="form_footer">
+            <input  type="submit" class="form_btn" value="確認"/>
+        </div>
+    }
+</div>

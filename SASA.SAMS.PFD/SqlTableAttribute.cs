@@ -13,6 +13,6 @@ namespace SASA.SAMS.PFD {
         /// <summary>
         /// PK
         /// </summary>
-        public string[] PK { get; set; }
+        public string PK { get; set; }
     }
 }

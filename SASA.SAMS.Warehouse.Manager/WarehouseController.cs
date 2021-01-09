@@ -308,6 +308,9 @@ namespace SASA.SAMS.Warehouse.Manager {
                 //pallet info
                 MongoHouse = MongoClient.GetDatabase(this.PalletRoot);
                 try { MongoHouse.CreateCollection(this.PalletInfoTableName); } catch { }
+                //device info
+                MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+                try { MongoHouse.CreateCollection(PfdStructure.MongoTableName); } catch { }
             } else {
                 System.IO.DirectoryInfo root = new System.IO.DirectoryInfo($"{GlobalString.GetInstallRoot}\\{this.WarehouseRoot}");
                 if (!root.Exists)
@@ -972,7 +975,10 @@ namespace SASA.SAMS.Warehouse.Manager {
 
 
         #region 設備 相關
-
+        /// <summary>
+        /// 取得設備種類
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [EnableCors("*", "*", "*")]
         [Route("sams/device/type")]
@@ -992,7 +998,10 @@ namespace SASA.SAMS.Warehouse.Manager {
 
             return response;
         }
-
+        /// <summary>
+        /// 取得連接設備物流方向
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [EnableCors("*", "*", "*")]
         [Route("sams/device/direction")]
@@ -1009,6 +1018,127 @@ namespace SASA.SAMS.Warehouse.Manager {
                     Value = d.ToString()
                 };
             });
+
+            return response;
+        }
+        /// <summary>
+        /// 取得所有裝置 ID
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [EnableCors("*", "*", "*")]
+        [Route("sams/device/list")]
+        public object GetAllDevice() {
+            ResponseStruct response = new ResponseStruct();
+
+            DeviceType[] type = Enum.GetValues(typeof(DeviceType)).Cast<DeviceType>().ToArray();
+            if (MSSQL is null) {
+                response.isSuccess = false;
+                response.Status = "資料庫未連線, 無法取得裝置";
+            } else {
+                List<object> deviceList = new List<object>();
+
+                Array.ForEach(type, t => {
+                    string table = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().Table;
+                    string pk = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().PK;
+
+                    string query = $"SELECT [{pk}] FROM [{table}];";
+                    SqlCommand cmd = new SqlCommand(query, MSSQL);
+                    SqlDataReader sdr = null;
+                    try {
+                        sdr = cmd.ExecuteReader();
+                        if (sdr.HasRows) {
+                            Dictionary<string, object> row = new Dictionary<string, object>();
+                            while (sdr.Read()) {
+                                for (int i = 0; i < sdr.FieldCount; i++) {
+                                    row.Add(sdr.GetName(i), sdr.GetValue(i));
+                                }
+                            }
+
+                            deviceList.Add(new {
+                                Type = t.ToString(),
+                                Device = row
+                            });
+                        }
+
+                    } catch (Exception e) {
+                        Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+                    } finally {
+                        sdr.Close();
+                    }
+                });
+
+                response.isSuccess = true;
+                response.Status = "裝置查詢完成";
+                response.Data = deviceList;
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 編輯 裝置
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("sams/device/edit")]
+        public object EditDeivce([FromBody] JObject data) {
+            ResponseStruct response = new ResponseStruct();
+
+            PfdStructure.Device device = new PfdStructure.Device();
+
+            try {
+                device.Id = data["DeviceId"].ToObject<string>();
+                device.Name = data["DeviceName"].ToObject<string>();
+                device.Type = data["DeviceType"].ToObject<string>();
+                device.Enable = data["DeviceActive"].ToObject<bool>();
+
+
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = "資料解讀錯誤";
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+                return response;
+            }
+
+            //mssql
+            DeviceType type = (DeviceType)Enum.Parse(typeof(DeviceType), device.Type);
+            string table = type.GetType().GetMember(type.ToString()).First().GetCustomAttribute<SqlTableAttribute>().Table;
+            string pk = type.GetType().GetMember(type.ToString()).First().GetCustomAttribute<SqlTableAttribute>().PK;
+
+            string query = $@"IF EXISTS (SELECT * FROM [{table}])
+                                                    UPDATE [{table}] SET [{pk}]='{device.Id}', [is_active]='{device.Enable}' WHERE [{pk}]='{device.Id}'
+                                                ELSE
+                                                    INSERT INTO [{table}] ([{pk}],[is_active]) VALUES ('{device.Id}','{device.Enable}')";
+
+            SqlCommand cmd = new SqlCommand(query, MSSQL);
+            bool isMssqlSuccess = cmd.ExecuteNonQuery() > 0;
+
+            //mongo
+            bool isMongoSucces = false;
+            IMongoDatabase MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+            var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
+
+            try {
+                var find = deviceList.AsQueryable().Where(d => d.Id.Equals(device.Id))?.ToArray();
+                if (find.Length <= 0) {
+                    deviceList.InsertOne(device);
+                } else {
+                    var update = Builders<PfdStructure.Device>.Update;
+                    Array.ForEach(device.GetType().GetProperties(), p => {
+                        deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set(p.Name, p.GetValue(device)));
+                    });
+                }
+
+                isMongoSucces = true;
+            } catch (Exception e) {
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+            }
+
+            //
+            response.isSuccess = isMssqlSuccess || isMongoSucces;
+            response.Status = (response.isSuccess) ? "裝置修改成功" : "裝置修改失敗";
 
             return response;
         }
