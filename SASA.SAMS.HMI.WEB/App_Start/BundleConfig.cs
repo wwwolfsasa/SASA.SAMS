@@ -38,7 +38,13 @@ namespace SASA.SAMS.HMI.WEB {
             bundles.Add(new ScriptBundle("~/ASRS/Warehouse/js").Include(
                 "~/Scripts/ASRS/AsrsWarehouse*"
                 ));
-
+            //Asrs PFD
+            bundles.Add(new StyleBundle("~/ASRS/PFD/css").Include(
+                "~/Content/ASRS/AsrsPFD*"
+                ));
+            bundles.Add(new ScriptBundle("~/ASRS/PFD/js").Include(
+                "~/Scripts/ASRS/AsrsPFD*"
+                ));
         }
     }
 }
