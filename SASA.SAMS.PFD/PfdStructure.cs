@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace SASA.SAMS.PFD {
 
@@ -77,6 +78,7 @@ namespace SASA.SAMS.PFD {
         /// <summary>
         /// 裝置
         /// </summary>
+        [JsonConverter(typeof(JDeviceConvert))]
         public class Device {
             /// <summary>
             /// Mongo Id
@@ -104,6 +106,61 @@ namespace SASA.SAMS.PFD {
             /// </summary>
             public List<ConnectItem> ConnectItems { get; set; }
         }
+        /// <summary>
+        /// 裝置 JSON
+        /// </summary>
+        public class JDevice {
+            /// <summary>
+            /// Mongo Id
+            /// </summary>
+            public string MongoId { get; set; }
+            /// <summary>
+            /// 裝置編號
+            /// </summary>
+            public string Id { get; set; }
+            /// <summary>
+            /// 裝置名稱
+            /// </summary>
+            public string Name { get; set; }
+            /// <summary>
+            /// 裝置種類
+            /// </summary>
+            public string Type { get; set; }
+            /// <summary>
+            /// 啟/禁用
+            /// </summary>
+            public bool Enable { get; set; }
+            /// <summary>
+            /// 連接裝置
+            /// </summary>
+            public List<ConnectItem> ConnectItems { get; set; }
+        }
+
+        public class JDeviceConvert:JsonConverter {
+            public override bool CanRead => true;
+            public override bool CanWrite => false;
+
+            public override bool CanConvert(Type objectType) {
+                return typeof(Device) == objectType;
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+                var Jdevice = serializer.Deserialize<JDevice>(reader);
+                var device = new Device() {
+                    Id = Jdevice.Id,
+                    Name = Jdevice.Name,
+                    Enable = Jdevice.Enable,
+                    Type = Jdevice.Type,
+                    ConnectItems = Jdevice.ConnectItems
+                };
+
+                return device;
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+                throw new NotImplementedException();
+            }
+        }
 
         /// <summary>
         /// 連接裝置
@@ -113,6 +170,10 @@ namespace SASA.SAMS.PFD {
             /// 裝置編號
             /// </summary>
             public string Id { get; set; }
+            /// <summary>
+            /// 是否連接
+            /// </summary>
+            public bool isConnect { get; set; }
             /// <summary>
             /// 物流方向 <seealso cref="DeviceDirection"/>
             /// </summary>

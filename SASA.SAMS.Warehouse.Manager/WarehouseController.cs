@@ -1031,46 +1031,50 @@ namespace SASA.SAMS.Warehouse.Manager {
         public object GetAllDevice() {
             ResponseStruct response = new ResponseStruct();
 
-            DeviceType[] type = Enum.GetValues(typeof(DeviceType)).Cast<DeviceType>().ToArray();
-            if (MSSQL is null) {
-                response.isSuccess = false;
-                response.Status = "資料庫未連線, 無法取得裝置";
-            } else {
-                List<object> deviceList = new List<object>();
+            IMongoDatabase MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+            var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
 
-                Array.ForEach(type, t => {
-                    string table = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().Table;
-                    string pk = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().PK;
-
-                    string query = $"SELECT [{pk}] FROM [{table}];";
-                    SqlCommand cmd = new SqlCommand(query, MSSQL);
-                    SqlDataReader sdr = null;
-                    try {
-                        sdr = cmd.ExecuteReader();
-                        if (sdr.HasRows) {
-                            Dictionary<string, object> row = new Dictionary<string, object>();
-                            while (sdr.Read()) {
-                                for (int i = 0; i < sdr.FieldCount; i++) {
-                                    row.Add(sdr.GetName(i), sdr.GetValue(i));
-                                }
-                            }
-
-                            deviceList.Add(new {
-                                Type = t.ToString(),
-                                Device = row
-                            });
-                        }
-
-                    } catch (Exception e) {
-                        Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
-                    } finally {
-                        sdr.Close();
-                    }
-                });
+            try {
+                response.Data = deviceList.AsQueryable().Select(d => d).OrderBy(d => d.Type)?.ToList();
 
                 response.isSuccess = true;
-                response.Status = "裝置查詢完成";
-                response.Data = deviceList;
+                response.Status = "查詢完成";
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = "裝置查詢失敗";
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+            }
+
+            return response;
+        }
+        /// <summary>
+        /// 取得裝置
+        /// </summary>
+        /// <param name="deviceid"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [EnableCors("*", "*", "*")]
+        [Route("sams/device/get/{deviceid}")]
+        public object GetDeviceById(string deviceid) {
+            ResponseStruct response = new ResponseStruct();
+
+            IMongoDatabase MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+            var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
+
+            try {
+                PfdStructure.Device device = deviceList.AsQueryable().Where(d => d.Id.Equals(deviceid))?.FirstOrDefault();
+                if (device is null) {
+                    response.isSuccess = false;
+                    response.Status = "無此裝置";
+                } else {
+                    response.isSuccess = true;
+                    response.Status = "裝置查詢成功";
+                    response.Data = device;
+                }
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = "裝置查詢失敗";
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
             }
 
             return response;
@@ -1093,7 +1097,7 @@ namespace SASA.SAMS.Warehouse.Manager {
                 device.Name = data["DeviceName"].ToObject<string>();
                 device.Type = data["DeviceType"].ToObject<string>();
                 device.Enable = data["DeviceActive"].ToObject<bool>();
-
+                device.ConnectItems = data["DeiviceList"].ToObject<List<PfdStructure.ConnectItem>>();
 
             } catch (Exception e) {
                 response.isSuccess = false;
@@ -1129,6 +1133,37 @@ namespace SASA.SAMS.Warehouse.Manager {
                     Array.ForEach(device.GetType().GetProperties(), p => {
                         deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set(p.Name, p.GetValue(device)));
                     });
+                    //被連接的裝置
+                    device.ConnectItems?.ForEach(c => {
+                        var connDeviceConnectList = deviceList.AsQueryable().Where(d => d.Id.Equals(c.Id))?.FirstOrDefault()?.ConnectItems;
+                        if (connDeviceConnectList is null)
+                            connDeviceConnectList = new List<PfdStructure.ConnectItem>();
+
+                        var mainDevice = connDeviceConnectList.Where(cdc => cdc.Id.Equals(device.Id))?.FirstOrDefault();
+                        if (mainDevice is null) {
+                            mainDevice = new PfdStructure.ConnectItem();
+                            connDeviceConnectList.Add(mainDevice);
+                        }
+
+                        mainDevice.Id = device.Id;
+                        mainDevice.isConnect = c.isConnect;
+                        switch (Enum.Parse(typeof(DeviceDirection), c.Direction)) {
+                            case DeviceDirection.IN:
+                                mainDevice.Direction = DeviceDirection.OUT.ToString();
+                                break;
+                            case DeviceDirection.OUT:
+                                mainDevice.Direction = DeviceDirection.IN.ToString();
+                                break;
+                            case DeviceDirection.INOUT:
+                                mainDevice.Direction = DeviceDirection.INOUT.ToString();
+                                break;
+                            case DeviceDirection.NAN:
+                                mainDevice.Direction = DeviceDirection.NAN.ToString();
+                                break;
+                        }
+
+                        deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(c.Id), Builders<PfdStructure.Device>.Update.Set("ConnectItems", connDeviceConnectList));
+                    });
                 }
 
                 isMongoSucces = true;
@@ -1142,6 +1177,8 @@ namespace SASA.SAMS.Warehouse.Manager {
 
             return response;
         }
+
+
         #endregion 設備 相關
 
         #endregion Warehouse WebApi [基本操作]

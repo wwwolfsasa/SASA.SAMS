@@ -1,5 +1,6 @@
 ﻿@using SASA.SAMS.HMI.WEB.Models
-@model AsrsPfdEditModel
+@using SASA.SAMS.PFD
+@model AsrsPfdModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -13,7 +14,7 @@
     @Scripts.Render("~/ASRS/PFD/js")
 }
 
-@if(TempData["ALERT"] != null) {
+@if (TempData["ALERT"] != null) {
     <script>
         alert('@Html.Raw(TempData["ALERT"])')
     </script>
@@ -23,26 +24,54 @@
     <div id="pfd_edit_view_title">@ViewBag.Title</div>
 
     @using (Html.BeginForm("EditDevice", "AsrsPfd", FormMethod.Post, new { @class = "pfd_edit_form" })) {
-        <div class="form_row">
+        <div class="form-row">
             @Html.LabelFor(m => m.DeviceId, new { @class = "form_label" })
             @Html.TextBoxFor(m => m.DeviceId, new { @class = "form_set" })
             @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "form_error" })
         </div>
-        <div class="form_row">
+        <div class="form-row">
             @Html.LabelFor(m => m.DeviceName, new { @class = "form_label" })
             @Html.TextBoxFor(m => m.DeviceName, new { @class = "form_set" })
         </div>
-        <div class="form_row">
+        <div class="form-row">
             @Html.LabelFor(m => m.DeviceType, new { @class = "form_label" })
             @Html.DropDownListFor(m => m.DeviceType, Model.DeviceTypeList, new { @class = "form_select" })
             @Html.ValidationMessageFor(m => m.DeviceType, "", new { @class = "form_error" })
         </div>
-        <div class="form_row">
+        <div class="form-row">
             @Html.LabelFor(m => m.DeviceActive, new { @class = "form_label" })
             @Html.CheckBoxFor(m => m.DeviceActive, new { @class = "form_check" })
         </div>
+
+        <div class="form-conn">
+            <table class="'conn-table" border="1">
+                <caption>連接裝置</caption>
+                <thead>
+                    <tr>
+                        <th class="conn-header">裝置 ID</th>
+                        <th class="conn-header">是否連接</th>
+                        <th class="conn-header">對象物流方向</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.DeiviceList.Count; i++) {
+                        <tr class="device-item-row">
+                            <td class="device-item-id">@Model.DeiviceList[i].Id@Html.HiddenFor(m => m.DeiviceList[i].Id)</td>
+                            <td class="device-item-isconn">@Html.CheckBoxFor(m => m.DeiviceList[i].isConnect)</td>
+                            <td class="device-item-direction">@Html.DropDownListFor(m => m.DeiviceList[i].Direction, Model.DeviceDirectionList, new { @class = "set-direction", value = Model.DeiviceList[i].Direction })</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <script>
+                $.each($('.set-direction'), function () {
+                    $(this).val($(this).attr('value'));
+                })
+            </script>
+        </div>
+
         <div class="form_footer">
-            <input  type="submit" class="form_btn" value="確認"/>
+            <input type="submit" class="form_btn" value="確認" />
         </div>
     }
 </div>

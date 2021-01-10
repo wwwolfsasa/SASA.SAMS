@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SASA.SAMS.HMI.WEB.Models;
+using SASA.SAMS.PFD;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,25 @@ using System.Web.Mvc;
 namespace SASA.SAMS.HMI.WEB.Controllers {
     public class AsrsPfdController:Controller {
         // GET: AsrsPid
-        public ActionResult Index() {
-            return View();
+        public async Task<ActionResult> Index() {
+            List<AsrsPfdModel> models = new List<AsrsPfdModel>();
+
+            var response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest("http://localhost:32000/sams/device/list"));
+            if (response != null && response["isSuccess"].Value<bool>()) {
+                var devices = response["Data"].ToObject<List<PfdStructure.Device>>();
+                devices?.ForEach(d => {
+                    models.Add(new AsrsPfdModel() {
+                        DeviceId = d.Id,
+                        DeviceName = d.Name,
+                        DeviceActive = d.Enable,
+                        DeviceType = d.Type,
+                        DeiviceConnectList = d.ConnectItems
+                    });
+                });
+            }
+
+
+            return View(models);
         }
 
         /// <summary>
@@ -24,7 +42,7 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
             if (alert != null)
                 TempData["ALERT"] = alert;
 
-            AsrsPfdEditModel model = new AsrsPfdEditModel();
+            AsrsPfdModel model = new AsrsPfdModel();
             //裝置種類
             var response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest("http://localhost:32000/sams/device/type"));
             if (response != null && response["isSuccess"].Value<bool>()) {
@@ -38,10 +56,51 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
             } else {
                 model.DeviceTypeList = new List<SelectListItem>();
             }
+            //物流方向
+            response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest("http://localhost:32000/sams/device/direction"));
+            if (response != null && response["isSuccess"].Value<bool>()) {
+                var tmp = response["Data"].Value<JArray>();
+                model.DeviceDirectionList = tmp.Select(item => {
+                    return new SelectListItem() {
+                        Text = item["Name"].Value<string>(),
+                        Value = item["Value"].Value<string>()
+                    };
+                }).ToList();
+            } else {
+                model.DeviceDirectionList = new List<SelectListItem>();
+            }
+            //目前裝置
+            if (device != null) {
+                response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest($"http://localhost:32000/sams/device/get/{device}"));
+                if (response != null && response["isSuccess"].Value<bool>()) {
+                    PfdStructure.Device tmpDevice = response["Data"].ToObject<PfdStructure.Device>();
+                    model.DeviceId = tmpDevice.Id;
+                    model.DeviceName = tmpDevice.Name;
+                    model.DeviceType = tmpDevice.Type;
+                    model.DeviceActive = tmpDevice.Enable;
+                    model.DeiviceConnectList = tmpDevice.ConnectItems;
+                }
+            }
             //裝置清單
             response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest("http://localhost:32000/sams/device/list"));
             if (response != null && response["isSuccess"].Value<bool>()) {
-                model.OtherDeiviceList = response["Data"].Value<JArray>();
+                model.DeiviceList = response["Data"].ToObject<List<PfdStructure.ConnectItem>>();
+            }
+            //校正連接
+            if (model.DeiviceList != null) {
+                //移除自己
+                if (device != null) {
+                    var self = model.DeiviceList.Where(d => d.Id.Equals(device))?.FirstOrDefault();
+                    model.DeiviceList.Remove(self);
+                }
+                //
+                model.DeiviceConnectList?.ForEach(c => {
+                    var conn = model.DeiviceList.Where(d => d.Id.Equals(c.Id))?.FirstOrDefault();
+                    if (conn != null) {
+                        conn.isConnect = c.isConnect;
+                        conn.Direction = c.Direction;
+                    }
+                });
             }
 
             return View(model);
@@ -51,7 +110,7 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult> EditDevice(AsrsPfdEditModel model) {
+        public async Task<ActionResult> EditDevice(AsrsPfdModel model) {
             var response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.POSTRequest("http://localhost:32000/sams/device/edit", JsonConvert.SerializeObject(model)));
             if (response != null && response["isSuccess"].Value<bool>()) {
                 return RedirectToAction("Index", "AsrsPfd");

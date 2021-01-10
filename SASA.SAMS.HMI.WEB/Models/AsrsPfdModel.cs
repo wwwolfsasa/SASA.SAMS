@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SASA.SAMS.HMI.WEB.Controllers;
+using SASA.SAMS.PFD;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,10 +12,6 @@ using System.Web.Mvc;
 
 namespace SASA.SAMS.HMI.WEB.Models {
     public class AsrsPfdModel {
-
-    }
-
-    public class AsrsPfdEditModel {
         /// <summary>
         /// 裝置編號
         /// </summary>
@@ -38,30 +35,23 @@ namespace SASA.SAMS.HMI.WEB.Models {
         /// </summary>
         public IEnumerable<SelectListItem> DeviceTypeList { get; set; }
         /// <summary>
+        /// 物流方向清單
+        /// </summary>
+        public IEnumerable<SelectListItem> DeviceDirectionList { get; set; }
+        /// <summary>
         /// 裝置啟用
         /// </summary>
         [DisplayName("裝置啟用")]
         public bool DeviceActive { get; set; }
         /// <summary>
-        /// 連接的裝置
-        /// </summary>
-        [DisplayName("連接的裝置")]
-        public List<ConnectedDeviceModel> ConnectedDevice { get; set; }
-        /// <summary>
         /// 裝置清單
         /// </summary>
         [DisplayName("裝置清單")]
-        public JArray OtherDeiviceList { get; set; }
-    }
-
-    public class ConnectedDeviceModel {
+        public List<PfdStructure.ConnectItem> DeiviceList { get; set; }
         /// <summary>
-        /// 連接裝製名稱
+        /// 裝置連接清單
         /// </summary>
-        public string Name { get; set; }
-        /// <summary>
-        /// 連接物流方向
-        /// </summary>
-        public string Direction { get; set; }
+        [DisplayName("裝置連接清單")]
+        public List<PfdStructure.ConnectItem> DeiviceConnectList { get; set; }
     }
 }
