@@ -1177,8 +1177,47 @@ namespace SASA.SAMS.Warehouse.Manager {
 
             return response;
         }
+        /// <summary>
+        /// 設定位置
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("sams/device/set/position")]
+        public object EditDeivcePosition([FromBody] JObject data) {
+            ResponseStruct response = new ResponseStruct();
 
+            string device = string.Empty;
+            float x = 0, y = 0;
+            try {
+                device = data["DeviceId"].Value<string>();
+                x = data["X"].Value<float>();
+                y = data["Y"].Value<float>();
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = "資料解讀錯誤";
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+                return response;
+            }
 
+            IMongoDatabase MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+            var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
+            try {
+                deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device), Builders<PfdStructure.Device>.Update.Set("PositionX", x)).Wait();
+                deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device), Builders<PfdStructure.Device>.Update.Set("PositionY", y)).Wait();
+
+                response.isSuccess = true;
+                response.Status = "資料更新成功";
+            } catch (Exception e) {
+                response.isSuccess = false;
+                response.Status = "資料更新錯誤";
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+                return response;
+            }
+
+            return response;
+        }
         #endregion 設備 相關
 
         #endregion Warehouse WebApi [基本操作]

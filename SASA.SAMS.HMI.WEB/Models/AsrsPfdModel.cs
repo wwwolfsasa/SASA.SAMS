@@ -44,6 +44,14 @@ namespace SASA.SAMS.HMI.WEB.Models {
         [DisplayName("裝置啟用")]
         public bool DeviceActive { get; set; }
         /// <summary>
+        /// 位置 X
+        /// </summary>
+        public float PositionX { get; set; }
+        /// <summary>
+        /// 位置 Y
+        /// </summary>
+        public float PositionY { get; set; }
+        /// <summary>
         /// 裝置清單
         /// </summary>
         [DisplayName("裝置清單")]

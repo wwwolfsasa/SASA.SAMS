@@ -20,8 +20,13 @@
     </div>
 
     <div id="pfd_tree">
+        <script>
+            SAMS_PFD.Initial();
+            SAMS_PFD.InitialCanvas();
+        </script>
+
         @foreach (AsrsPfdModel m in Model) {
-            <div class="device-item" id="@m.DeviceId" typeof="@m.DeviceType">
+            <div class="device-item device-darg" id="@m.DeviceId" typeof="@m.DeviceType" style="top:@string.Format("{0}px",m.PositionY);left:@string.Format("{0}px",m.PositionX);">
                 <div class="device-name">
                     @Ajax.ActionLink(m.DeviceName, "EditDevice", "AsrsPfd", new { device = m.DeviceId },
                new AjaxOptions() { HttpMethod = "GET" },

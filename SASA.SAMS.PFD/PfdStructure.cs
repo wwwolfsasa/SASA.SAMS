@@ -102,6 +102,14 @@ namespace SASA.SAMS.PFD {
             /// </summary>
             public bool Enable { get; set; }
             /// <summary>
+            /// 位置 X
+            /// </summary>
+            public float PositionX { get; set; }
+            /// <summary>
+            /// 位置 Y
+            /// </summary>
+            public float PositionY { get; set; }
+            /// <summary>
             /// 連接裝置
             /// </summary>
             public List<ConnectItem> ConnectItems { get; set; }
@@ -131,6 +139,14 @@ namespace SASA.SAMS.PFD {
             /// </summary>
             public bool Enable { get; set; }
             /// <summary>
+            /// 位置 X
+            /// </summary>
+            public float PositionX { get; set; }
+            /// <summary>
+            /// 位置 Y
+            /// </summary>
+            public float PositionY { get; set; }
+            /// <summary>
             /// 連接裝置
             /// </summary>
             public List<ConnectItem> ConnectItems { get; set; }
@@ -151,6 +167,8 @@ namespace SASA.SAMS.PFD {
                     Name = Jdevice.Name,
                     Enable = Jdevice.Enable,
                     Type = Jdevice.Type,
+                    PositionX = Jdevice.PositionX,
+                    PositionY = Jdevice.PositionY,
                     ConnectItems = Jdevice.ConnectItems
                 };
 

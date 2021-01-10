@@ -24,6 +24,8 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
                         DeviceName = d.Name,
                         DeviceActive = d.Enable,
                         DeviceType = d.Type,
+                        PositionX = d.PositionX,
+                        PositionY = d.PositionY,
                         DeiviceConnectList = d.ConnectItems
                     });
                 });
@@ -78,6 +80,8 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
                     model.DeviceName = tmpDevice.Name;
                     model.DeviceType = tmpDevice.Type;
                     model.DeviceActive = tmpDevice.Enable;
+                    model.PositionX = tmpDevice.PositionX;
+                    model.PositionY = tmpDevice.PositionY;
                     model.DeiviceConnectList = tmpDevice.ConnectItems;
                 }
             }

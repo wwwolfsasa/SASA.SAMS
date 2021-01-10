@@ -1,1 +1,45 @@
-﻿
+﻿#pfd_tree {
+    width: 100%;
+    height: 80%;
+    margin: 5px 0px;
+    border: 1px solid #C8C8C8;
+}
+
+
+/*裝置區塊*/
+.device-item {
+    position: absolute;
+    padding: 5px 3px;
+    border-radius: 5px;
+}
+
+    .device-item[typeof="Crane"] {
+        background: #CC0000;
+    }
+
+    .device-item[typeof="CV"] {
+        background: #227700;
+    }
+
+    .device-item[typeof="Port"] {
+        background: #00BBFF;
+    }
+
+    .device-item[typeof="Shelf"] {
+        background: #CCCC00;
+    }
+
+.device-darg {
+    cursor: move;
+}
+
+.device-id {
+    padding: 5px 3px;
+    color: #FFFFFF;
+    font-weight: bolder;
+    text-decoration: none;
+}
+
+    .device-id:hover {
+        text-decoration: none;
+    }
