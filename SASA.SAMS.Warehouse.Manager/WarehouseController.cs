@@ -1127,12 +1127,14 @@ namespace SASA.SAMS.Warehouse.Manager {
             try {
                 var find = deviceList.AsQueryable().Where(d => d.Id.Equals(device.Id))?.ToArray();
                 if (find.Length <= 0) {
+                    device.PositionX = device.PositionY = 300;
                     deviceList.InsertOne(device);
                 } else {
                     var update = Builders<PfdStructure.Device>.Update;
-                    Array.ForEach(device.GetType().GetProperties(), p => {
-                        deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set(p.Name, p.GetValue(device)));
-                    });
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Name", device.Name)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Type", device.Type)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Enable", device.Enable)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("ConnectItems", device.ConnectItems)).Wait();
                     //被連接的裝置
                     device.ConnectItems?.ForEach(c => {
                         var connDeviceConnectList = deviceList.AsQueryable().Where(d => d.Id.Equals(c.Id))?.FirstOrDefault()?.ConnectItems;
