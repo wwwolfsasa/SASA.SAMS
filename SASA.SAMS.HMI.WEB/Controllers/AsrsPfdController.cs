@@ -76,6 +76,7 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
                 response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.GETRequest($"http://localhost:32000/sams/device/get/{device}"));
                 if (response != null && response["isSuccess"].Value<bool>()) {
                     PfdStructure.Device tmpDevice = response["Data"].ToObject<PfdStructure.Device>();
+                    model.OrgDeviceId = device;
                     model.DeviceId = tmpDevice.Id;
                     model.DeviceName = tmpDevice.Name;
                     model.DeviceType = tmpDevice.Type;
@@ -122,7 +123,18 @@ namespace SASA.SAMS.HMI.WEB.Controllers {
                 return await EditDevice(alert: response["Status"].Value<string>());
             }
         }
-
-
+        /// <summary>
+        /// 刪除裝置
+        /// </summary>
+        /// <param name="device"></param>
+        /// <returns></returns>
+        public async Task<ActionResult> RemoveDevice(string device, string type) {
+            var response = JsonConvert.DeserializeObject<JObject>(await HttpHelper.POSTRequest($"http://localhost:32000/sams/device/remove/{type}/{device}", ""));
+            if (response != null && response["isSuccess"].Value<bool>()) {
+                return RedirectToAction("Index", "AsrsPfd");
+            } else {
+                return await EditDevice(alert: response["Status"].Value<string>());
+            }
+        }
     }
 }

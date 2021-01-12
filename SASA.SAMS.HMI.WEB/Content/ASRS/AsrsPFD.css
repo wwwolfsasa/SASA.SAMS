@@ -43,3 +43,22 @@
     .device-id:hover {
         text-decoration: none;
     }
+
+a.device-tool-item {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    background: #000000;
+    border-radius: 100%;
+    font-size: 12px;
+    font-weight: bolder;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+    a.device-tool-item:hover {
+        text-decoration: none;
+    }

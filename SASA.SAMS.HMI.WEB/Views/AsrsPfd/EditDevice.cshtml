@@ -27,6 +27,7 @@
         <div class="form-row">
             @Html.LabelFor(m => m.DeviceId, new { @class = "form_label" })
             @Html.TextBoxFor(m => m.DeviceId, new { @class = "form_set" })
+            @Html.HiddenFor(m => m.OrgDeviceId)
             @Html.ValidationMessageFor(m => m.DeviceId, "", new { @class = "form_error" })
         </div>
         <div class="form-row">

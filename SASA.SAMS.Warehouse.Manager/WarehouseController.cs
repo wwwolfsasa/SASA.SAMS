@@ -1092,6 +1092,11 @@ namespace SASA.SAMS.Warehouse.Manager {
 
             PfdStructure.Device device = new PfdStructure.Device();
 
+            string orgId = null;
+            try {
+                orgId = data["OrgDeviceId"].ToObject<string>();
+            } catch { }
+
             try {
                 device.Id = data["DeviceId"].ToObject<string>();
                 device.Name = data["DeviceName"].ToObject<string>();
@@ -1111,8 +1116,8 @@ namespace SASA.SAMS.Warehouse.Manager {
             string table = type.GetType().GetMember(type.ToString()).First().GetCustomAttribute<SqlTableAttribute>().Table;
             string pk = type.GetType().GetMember(type.ToString()).First().GetCustomAttribute<SqlTableAttribute>().PK;
 
-            string query = $@"IF EXISTS (SELECT * FROM [{table}])
-                                                    UPDATE [{table}] SET [{pk}]='{device.Id}', [is_active]='{device.Enable}' WHERE [{pk}]='{device.Id}'
+            string query = $@"IF EXISTS (SELECT * FROM [{table}] WHERE [{pk}]='{orgId ?? device.Id}')
+                                                    UPDATE [{table}] SET [{pk}]='{device.Id}', [is_active]='{device.Enable}' WHERE [{pk}]='{orgId ?? device.Id}'
                                                 ELSE
                                                     INSERT INTO [{table}] ([{pk}],[is_active]) VALUES ('{device.Id}','{device.Enable}')";
 
@@ -1125,23 +1130,24 @@ namespace SASA.SAMS.Warehouse.Manager {
             var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
 
             try {
-                var find = deviceList.AsQueryable().Where(d => d.Id.Equals(device.Id))?.ToArray();
+                var find = deviceList.AsQueryable().Where(d => d.Id.Equals(orgId ?? device.Id))?.ToArray();
                 if (find.Length <= 0) {
                     device.PositionX = device.PositionY = 300;
                     deviceList.InsertOne(device);
                 } else {
                     var update = Builders<PfdStructure.Device>.Update;
-                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Name", device.Name)).Wait();
-                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Type", device.Type)).Wait();
-                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("Enable", device.Enable)).Wait();
-                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(device.Id), update.Set("ConnectItems", device.ConnectItems)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(orgId), update.Set("Id", device.Id)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(orgId), update.Set("Name", device.Name)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(orgId), update.Set("Type", device.Type)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(orgId), update.Set("Enable", device.Enable)).Wait();
+                    deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(orgId), update.Set("ConnectItems", device.ConnectItems)).Wait();
                     //被連接的裝置
                     device.ConnectItems?.ForEach(c => {
                         var connDeviceConnectList = deviceList.AsQueryable().Where(d => d.Id.Equals(c.Id))?.FirstOrDefault()?.ConnectItems;
                         if (connDeviceConnectList is null)
                             connDeviceConnectList = new List<PfdStructure.ConnectItem>();
 
-                        var mainDevice = connDeviceConnectList.Where(cdc => cdc.Id.Equals(device.Id))?.FirstOrDefault();
+                        var mainDevice = connDeviceConnectList.Where(cdc => cdc.Id.Equals(orgId))?.FirstOrDefault();
                         if (mainDevice is null) {
                             mainDevice = new PfdStructure.ConnectItem();
                             connDeviceConnectList.Add(mainDevice);
@@ -1176,6 +1182,56 @@ namespace SASA.SAMS.Warehouse.Manager {
             //
             response.isSuccess = isMssqlSuccess || isMongoSucces;
             response.Status = (response.isSuccess) ? "裝置修改成功" : "裝置修改失敗";
+
+            return response;
+        }
+        /// <summary>
+        /// 刪除裝置
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [EnableCors("*", "*", "*")]
+        [Route("sams/device/remove/{type}/{device}")]
+        public object RemoveDevice(string type, string device) {
+            ResponseStruct response = new ResponseStruct();
+
+            //mssql
+            DeviceType t = (DeviceType)Enum.Parse(typeof(DeviceType), type);
+            string table = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().Table;
+            string pk = t.GetType().GetMember(t.ToString()).First().GetCustomAttribute<SqlTableAttribute>().PK;
+
+            string query = $@"DELETE FROM [{table}] WHERE [{pk}]='{device}';";
+
+            SqlCommand cmd = new SqlCommand(query, MSSQL);
+            bool isMssqlSuccess = cmd.ExecuteNonQuery() > 0;
+
+            //mongo
+            bool isMongoSucces = false;
+            IMongoDatabase MongoHouse = MongoClient.GetDatabase(PfdStructure.MongoDbName);
+            var deviceList = MongoHouse.GetCollection<PfdStructure.Device>(PfdStructure.MongoTableName);
+
+            try {
+                //主裝置 刪除
+                deviceList.FindOneAndDeleteAsync(d => d.Id.Equals(device));
+                //連接裝置 刪除
+                foreach (var dv in deviceList.AsQueryable().Select(d => d)) {
+                    if (dv.ConnectItems != null) {
+                        var target = dv.ConnectItems.Where(tg => tg.Id.Equals(device))?.FirstOrDefault();
+                        if (target != null) {
+                            dv.ConnectItems.Remove(target);
+                        }
+
+                        deviceList.FindOneAndUpdateAsync(d => d.Id.Equals(dv.Id), Builders<PfdStructure.Device>.Update.Set("ConnectItems", dv.ConnectItems));
+                    }
+                }
+
+                isMongoSucces = true;
+            } catch (Exception e) {
+                Log.Write(Log.State.ERROR, Log.App.WAREHOUSE, e.Message);
+            }
+
+            response.isSuccess = isMssqlSuccess || isMongoSucces;
+            response.Status = (response.isSuccess) ? "裝置刪除成功" : "裝置刪除失敗";
 
             return response;
         }

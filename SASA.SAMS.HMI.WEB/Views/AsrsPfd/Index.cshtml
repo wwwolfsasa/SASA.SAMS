@@ -27,17 +27,26 @@
 
         @foreach (AsrsPfdModel m in Model) {
             <div class="device-item device-darg" id="@m.DeviceId" typeof="@m.DeviceType" style="top:@string.Format("{0}px",m.PositionY);left:@string.Format("{0}px",m.PositionX);">
+                <div class="device-tool">
+                    @Ajax.ActionLink("X", "RemoveDevice", "AsrsPfd", new { device = m.DeviceId, type=m.DeviceType},
+                   new AjaxOptions (){  HttpMethod = "GET" },
+                   new { @class="device-tool-item"})
+                </div>
+                
                 <div class="device-name">
                     @Ajax.ActionLink(m.DeviceName, "EditDevice", "AsrsPfd", new { device = m.DeviceId },
                new AjaxOptions() { HttpMethod = "GET" },
                new { @class = "device-id" })
                 </div>
 
-                @foreach (PfdStructure.ConnectItem c in m.DeiviceConnectList) {
-                    if (c.isConnect) {
-                        <div class="device-conn" conn=@c.Id dir=@c.Direction></div>
+                @if (m.DeiviceConnectList != null) {
+                    foreach (PfdStructure.ConnectItem c in m.DeiviceConnectList) {
+                        if (c.isConnect) {
+                            <div class="device-conn" conn=@c.Id dir=@c.Direction></div>
+                        }
                     }
                 }
+
             </div>
         }
     </div>

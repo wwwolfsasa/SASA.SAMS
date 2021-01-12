@@ -13,6 +13,10 @@ using System.Web.Mvc;
 namespace SASA.SAMS.HMI.WEB.Models {
     public class AsrsPfdModel {
         /// <summary>
+        /// 元 裝置編號
+        /// </summary>
+        public string OrgDeviceId { get; set; }
+        /// <summary>
         /// 裝置編號
         /// </summary>
         [Required(ErrorMessage = "裝置編號 不可為空")]
